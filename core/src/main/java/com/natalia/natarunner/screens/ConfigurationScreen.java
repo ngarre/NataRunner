@@ -9,6 +9,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.natalia.natarunner.NataRunner;
+import com.natalia.natarunner.manager.GameSettings;
 
 public class ConfigurationScreen implements Screen {
 
@@ -30,7 +32,7 @@ public class ConfigurationScreen implements Screen {
             spriteBatch = new SpriteBatch();
             viewport = new FitViewport(1280, 720);
             font = new BitmapFont();
-            font.getData().setScale(1.6f);
+            font.getData().setScale(1.5f);
             font.setColor(Color.WHITE);
         }
     }
@@ -39,6 +41,8 @@ public class ConfigurationScreen implements Screen {
     public void render(float delta) {
         input();
 
+        GameSettings settings = ((NataRunner) game).settings;
+
         ScreenUtils.clear(0.07f, 0.07f, 0.10f, 1f);
 
         viewport.apply();
@@ -46,12 +50,28 @@ public class ConfigurationScreen implements Screen {
 
         spriteBatch.begin();
         font.draw(spriteBatch, "CONFIGURACION", 420, 620);
-        font.draw(spriteBatch, "Aqui anadiremos las opciones del juego.", 220, 470);
-        font.draw(spriteBatch, "Pulsa ESC para volver al menu.", 280, 320);
+
+        font.draw(spriteBatch, "Pulsa M para cambiar control con raton", 180, 500);
+        font.draw(spriteBatch, "Mouse control: " + (settings.isMouseEnabled() ? "ACTIVADO" : "DESACTIVADO"), 220, 440);
+
+        font.draw(spriteBatch, "Pulsa F para cambiar modo facil", 220, 340);
+        font.draw(spriteBatch, "Easy mode: " + (settings.isEasyMode() ? "ACTIVADO" : "DESACTIVADO"), 280, 280);
+
+        font.draw(spriteBatch, "Pulsa ESC para volver", 330, 160);
         spriteBatch.end();
     }
 
     private void input() {
+        GameSettings settings = ((NataRunner) game).settings;
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.M)) {
+            settings.setMouseEnabled(!settings.isMouseEnabled());
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F)) {
+            settings.setEasyMode(!settings.isEasyMode());
+        }
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             game.setScreen(previousScreen);
         }
