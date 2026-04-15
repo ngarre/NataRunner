@@ -9,17 +9,21 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.natalia.natarunner.NataRunner;
+import com.natalia.natarunner.manager.GameSettings;
 
-public class MenuScreen implements Screen {
+public class ConfigurationScreen implements Screen {
 
     private final Game game;
+    private final Screen previousScreen;
 
     private SpriteBatch spriteBatch;
     private FitViewport viewport;
     private BitmapFont font;
 
-    public MenuScreen(Game game) {
+    public ConfigurationScreen(Game game, Screen previousScreen) {
         this.game = game;
+        this.previousScreen = previousScreen;
     }
 
     @Override
@@ -28,7 +32,7 @@ public class MenuScreen implements Screen {
             spriteBatch = new SpriteBatch();
             viewport = new FitViewport(1280, 720);
             font = new BitmapFont();
-            font.getData().setScale(2f);
+            font.getData().setScale(1.5f);
             font.setColor(Color.WHITE);
         }
     }
@@ -37,35 +41,39 @@ public class MenuScreen implements Screen {
     public void render(float delta) {
         input();
 
-        ScreenUtils.clear(0.05f, 0.05f, 0.08f, 1f);
+        GameSettings settings = ((NataRunner) game).settings;
+
+        ScreenUtils.clear(0.07f, 0.07f, 0.10f, 1f);
 
         viewport.apply();
         spriteBatch.setProjectionMatrix(viewport.getCamera().combined);
 
         spriteBatch.begin();
-        font.draw(spriteBatch, "NataRunner", 470, 620);
-        font.draw(spriteBatch, "Pulsa ENTER para empezar", 360, 450);
-        font.draw(spriteBatch, "Pulsa C para configuracion", 340, 380);
-        font.draw(spriteBatch, "Pulsa I para ver instrucciones", 320, 310);
-        font.draw(spriteBatch, "Pulsa ESC para salir", 390, 240);
+        font.draw(spriteBatch, "CONFIGURACION", 420, 620);
+
+        font.draw(spriteBatch, "Pulsa M para cambiar control con raton", 180, 500);
+        font.draw(spriteBatch, "Mouse control: " + (settings.isMouseEnabled() ? "ACTIVADO" : "DESACTIVADO"), 220, 440);
+
+        font.draw(spriteBatch, "Pulsa F para cambiar modo facil", 220, 340);
+        font.draw(spriteBatch, "Easy mode: " + (settings.isEasyMode() ? "ACTIVADO" : "DESACTIVADO"), 280, 280);
+
+        font.draw(spriteBatch, "Pulsa ESC para volver", 330, 160);
         spriteBatch.end();
     }
 
     private void input() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            game.setScreen(new TearsScreen(game));
+        GameSettings settings = ((NataRunner) game).settings;
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.M)) {
+            settings.setMouseEnabled(!settings.isMouseEnabled());
         }
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.C)) {
-            game.setScreen(new ConfigurationScreen(game, this));
-        }
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.I)) {
-            game.setScreen(new InstructionsScreen(game, this));
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F)) {
+            settings.setEasyMode(!settings.isEasyMode());
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            Gdx.app.exit();
+            game.setScreen(previousScreen);
         }
     }
 
