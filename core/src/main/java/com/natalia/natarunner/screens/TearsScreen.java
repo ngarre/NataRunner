@@ -15,6 +15,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.natalia.natarunner.NataRunner;
 import com.natalia.natarunner.config.GameConfig;
+import com.natalia.natarunner.model.entities.drops.RedDrop;
 import com.natalia.natarunner.model.entities.drops.WhiteDrop;
 import com.natalia.natarunner.model.entities.drops.YellowDrop;
 import com.natalia.natarunner.model.entities.player.PlayerTears;
@@ -40,15 +41,18 @@ public class TearsScreen implements Screen {
     private Texture gotaBlanca3;
     private Texture gotaAmarilla;
     private Texture gotaAmarillaSableada;
+    private Texture gotaRoja;
 
     private PlayerTears playerTears;
     private Array<WhiteDrop> gotasBlancas;
     private Array<YellowDrop> gotasAmarillas;
+    private Array<RedDrop> gotasRojas;
 
     private float hudHeight = 1f;
     private float barHeight = 60f;
     private float gotaBlancaTimer = 0f;
     private float gotaAmarillaTimer = 0f;
+    private float gotaRojaTimer = 0f;
     private float tiempoTotal = 0f;
 
     private int score = 100;
@@ -83,22 +87,26 @@ public class TearsScreen implements Screen {
             gotaBlanca3 = new Texture("Tears/Gotas/gota_blanca_3.png");
             gotaAmarilla = new Texture("Tears/Gotas/gota_amarilla.png");
             gotaAmarillaSableada = new Texture("Tears/Gotas/Sableada.png");
+            gotaRoja = new Texture("Tears/Gotas/gota_roja.png");
 
             hudBackground = new Texture("Tears/manoscerradas.png");
 
             playerTears = new PlayerTears(manosTexture, manosCerradasTexture, 5.5f, 1.2f);
             gotasBlancas = new Array<>();
             gotasAmarillas = new Array<>();
+            gotasRojas = new Array<>();
         }
 
         score = 100;
         hearts = GameConfig.cuantosCorazones;
         gotaBlancaTimer = 0f;
         gotaAmarillaTimer = 0f;
+        gotaRojaTimer = 0f;
         tiempoTotal = 0f;
 
         gotasBlancas.clear();
         gotasAmarillas.clear();
+        gotasRojas.clear();
 
         ((NataRunner) game).session.reset();
         ((NataRunner) game).session.setTearsScore(score);
@@ -132,9 +140,11 @@ public class TearsScreen implements Screen {
 
         spawnWhiteDrops(delta);
         spawnYellowDrops(delta);
+        spawnRedDrops(delta);
 
         updateWhiteDrops(delta);
         updateYellowDrops(delta);
+        updateRedDrops(delta);
 
         ((NataRunner) game).session.setTearsScore(score);
     }
@@ -172,6 +182,23 @@ public class TearsScreen implements Screen {
             float y = viewport.getWorldHeight() - hudHeight;
 
             gotasAmarillas.add(new YellowDrop(gotaAmarilla, gotaAmarillaSableada, x, y));
+        }
+    }
+
+    private void spawnRedDrops(float delta) {
+        if (tiempoTotal <= GameConfig.tiempoPrimeraGotaRoja) {
+            return;
+        }
+
+        gotaRojaTimer += delta;
+
+        if (gotaRojaTimer > GameConfig.tiempoCadaCuantoRoja) {
+            gotaRojaTimer = 0f;
+
+            float x = MathUtils.random(0f, viewport.getWorldWidth() - 0.8f);
+            float y = viewport.getWorldHeight() - hudHeight;
+
+            gotasRojas.add(new RedDrop(gotaRoja, x, y));
         }
     }
 
@@ -215,6 +242,23 @@ public class TearsScreen implements Screen {
         }
     }
 
+    private void updateRedDrops(float delta) {
+        for (int i = gotasRojas.size - 1; i >= 0; i--) {
+            RedDrop gota = gotasRojas.get(i);
+
+            gota.update(delta);
+            gota.chase(playerTears.getCenterX(), delta);
+
+            if (gota.isOutOfScreen()) {
+                gotasRojas.removeIndex(i);
+            } else if (playerTears.getBounds().overlaps(gota.getReducedBounds())) {
+                gotasRojas.removeIndex(i);
+                hearts--;
+                if (hearts < 0) hearts = 0;
+            }
+        }
+    }
+
     private void draw() {
         ScreenUtils.clear(Color.BLACK);
 
@@ -229,6 +273,10 @@ public class TearsScreen implements Screen {
         }
 
         for (YellowDrop gota : gotasAmarillas) {
+            gota.draw(spriteBatch);
+        }
+
+        for (RedDrop gota : gotasRojas) {
             gota.draw(spriteBatch);
         }
 
@@ -291,6 +339,7 @@ public class TearsScreen implements Screen {
         if (gotaBlanca3 != null) gotaBlanca3.dispose();
         if (gotaAmarilla != null) gotaAmarilla.dispose();
         if (gotaAmarillaSableada != null) gotaAmarillaSableada.dispose();
+        if (gotaRoja != null) gotaRoja.dispose();
         if (hudBackground != null) hudBackground.dispose();
     }
 }
