@@ -9,6 +9,8 @@ public class GameConfig {
     public static final float mundoAnchoTears = 12.28f;
     public static final float mundoAltoTears = 7.68f;
 
+    public static final float tiempoCadaCuantoGotaBlanca = 1f;
+
     private GameConfig() {
     }
 }

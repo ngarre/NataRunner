@@ -8,11 +8,14 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.natalia.natarunner.NataRunner;
 import com.natalia.natarunner.config.GameConfig;
+import com.natalia.natarunner.model.entities.drops.WhiteDrop;
 import com.natalia.natarunner.model.entities.player.PlayerTears;
 
 public class TearsScreen implements Screen {
@@ -31,10 +34,16 @@ public class TearsScreen implements Screen {
     private Texture manosCerradasTexture;
     private Texture hudBackground;
 
+    private Texture gotaBlanca1;
+    private Texture gotaBlanca2;
+    private Texture gotaBlanca3;
+
     private PlayerTears playerTears;
+    private Array<WhiteDrop> gotasBlancas;
 
     private float hudHeight = 1f;
     private float barHeight = 60f;
+    private float gotaBlancaTimer = 0f;
 
     private int score = 100;
     private int hearts = GameConfig.cuantosCorazones;
@@ -63,12 +72,23 @@ public class TearsScreen implements Screen {
             manosTexture = new Texture("Tears/manos.png");
             manosCerradasTexture = new Texture("Tears/manoscerradas.png");
 
+            gotaBlanca1 = new Texture("Tears/Gotas/gota_blanca_1.png");
+            gotaBlanca2 = new Texture("Tears/Gotas/gota_blanca_2.png");
+            gotaBlanca3 = new Texture("Tears/Gotas/gota_blanca_3.png");
+
             hudBackground = new Texture("Tears/manoscerradas.png");
 
             playerTears = new PlayerTears(manosTexture, manosCerradasTexture, 5.5f, 1.2f);
+            gotasBlancas = new Array<>();
         }
 
+        score = 100;
+        hearts = GameConfig.cuantosCorazones;
+        gotaBlancaTimer = 0f;
+        gotasBlancas.clear();
+
         ((NataRunner) game).session.reset();
+        ((NataRunner) game).session.setTearsScore(score);
     }
 
     @Override
@@ -94,6 +114,44 @@ public class TearsScreen implements Screen {
 
     private void update(float delta) {
         playerTears.update(delta, viewport.getWorldWidth(), viewport.getWorldHeight(), hudHeight);
+
+        spawnWhiteDrops(delta);
+        updateWhiteDrops(delta);
+
+        ((NataRunner) game).session.setTearsScore(score);
+    }
+
+    private void spawnWhiteDrops(float delta) {
+        gotaBlancaTimer += delta;
+
+        if (gotaBlancaTimer > GameConfig.tiempoCadaCuantoGotaBlanca) {
+            gotaBlancaTimer = 0f;
+
+            float x = MathUtils.random(0f, viewport.getWorldWidth() - 0.5f);
+            float y = viewport.getWorldHeight() - hudHeight;
+
+            gotasBlancas.add(new WhiteDrop(
+                gotaBlanca1,
+                gotaBlanca2,
+                gotaBlanca3,
+                x,
+                y
+            ));
+        }
+    }
+
+    private void updateWhiteDrops(float delta) {
+        for (int i = gotasBlancas.size - 1; i >= 0; i--) {
+            WhiteDrop gota = gotasBlancas.get(i);
+            gota.update(delta);
+
+            if (gota.isOutOfScreen()) {
+                gotasBlancas.removeIndex(i);
+            } else if (playerTears.getBounds().overlaps(gota.getBounds())) {
+                gotasBlancas.removeIndex(i);
+                score += WhiteDrop.POINTS;
+            }
+        }
     }
 
     private void draw() {
@@ -104,6 +162,11 @@ public class TearsScreen implements Screen {
 
         spriteBatch.begin();
         spriteBatch.draw(backgroundTexture, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
+
+        for (WhiteDrop gota : gotasBlancas) {
+            gota.draw(spriteBatch);
+        }
+
         playerTears.draw(spriteBatch);
         spriteBatch.end();
 
@@ -158,6 +221,9 @@ public class TearsScreen implements Screen {
         if (levelTexture != null) levelTexture.dispose();
         if (manosTexture != null) manosTexture.dispose();
         if (manosCerradasTexture != null) manosCerradasTexture.dispose();
+        if (gotaBlanca1 != null) gotaBlanca1.dispose();
+        if (gotaBlanca2 != null) gotaBlanca2.dispose();
+        if (gotaBlanca3 != null) gotaBlanca3.dispose();
         if (hudBackground != null) hudBackground.dispose();
     }
 }
