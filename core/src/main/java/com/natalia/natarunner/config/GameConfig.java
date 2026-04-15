@@ -11,6 +11,9 @@ public class GameConfig {
 
     public static final float tiempoCadaCuantoGotaBlanca = 1f;
 
+    public static final float tiempoPrimeraGotaAmarilla = 8f;
+    public static final float tiempoCadaCuantoAmarilla = 2.5f;
+
     private GameConfig() {
     }
 }
