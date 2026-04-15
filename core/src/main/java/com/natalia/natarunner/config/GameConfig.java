@@ -13,6 +13,7 @@ public class GameConfig {
 
     public static final float tiempoPrimeraGotaAmarilla = 8f;
     public static final float tiempoCadaCuantoAmarilla = 2.5f;
+    public static final float probabilidadSable = 0.3f;
 
     private GameConfig() {
     }

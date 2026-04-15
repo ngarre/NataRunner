@@ -39,6 +39,7 @@ public class TearsScreen implements Screen {
     private Texture gotaBlanca2;
     private Texture gotaBlanca3;
     private Texture gotaAmarilla;
+    private Texture gotaAmarillaSableada;
 
     private PlayerTears playerTears;
     private Array<WhiteDrop> gotasBlancas;
@@ -81,6 +82,7 @@ public class TearsScreen implements Screen {
             gotaBlanca2 = new Texture("Tears/Gotas/gota_blanca_2.png");
             gotaBlanca3 = new Texture("Tears/Gotas/gota_blanca_3.png");
             gotaAmarilla = new Texture("Tears/Gotas/gota_amarilla.png");
+            gotaAmarillaSableada = new Texture("Tears/Gotas/Sableada.png");
 
             hudBackground = new Texture("Tears/manoscerradas.png");
 
@@ -169,7 +171,7 @@ public class TearsScreen implements Screen {
             float x = MathUtils.random(0f, viewport.getWorldWidth() - 0.5f);
             float y = viewport.getWorldHeight() - hudHeight;
 
-            gotasAmarillas.add(new YellowDrop(gotaAmarilla, x, y));
+            gotasAmarillas.add(new YellowDrop(gotaAmarilla, gotaAmarillaSableada, x, y));
         }
     }
 
@@ -192,13 +194,23 @@ public class TearsScreen implements Screen {
             YellowDrop gota = gotasAmarillas.get(i);
             gota.update(delta);
 
+            if (gota.consumeTransformEvent()) {
+                // Más adelante aquí conectaremos sonido de transformación.
+            }
+
             if (gota.isOutOfScreen()) {
                 gotasAmarillas.removeIndex(i);
                 score -= YellowDrop.PENALTY;
                 if (score < 0) score = 0;
             } else if (playerTears.getBounds().overlaps(gota.getBounds())) {
                 gotasAmarillas.removeIndex(i);
-                score += YellowDrop.POINTS;
+
+                if (gota.isLethal()) {
+                    hearts--;
+                    if (hearts < 0) hearts = 0;
+                } else {
+                    score += YellowDrop.POINTS;
+                }
             }
         }
     }
@@ -278,6 +290,7 @@ public class TearsScreen implements Screen {
         if (gotaBlanca2 != null) gotaBlanca2.dispose();
         if (gotaBlanca3 != null) gotaBlanca3.dispose();
         if (gotaAmarilla != null) gotaAmarilla.dispose();
+        if (gotaAmarillaSableada != null) gotaAmarillaSableada.dispose();
         if (hudBackground != null) hudBackground.dispose();
     }
 }
