@@ -24,6 +24,6 @@ public class NataRunner extends Game {
         session = new GameSession();
         scoreManager = new ScoreManager();
 
-        setScreen(new MenuScreen(this));
+        setScreen(new MenuScreen(this, audioManager, resources, settings));
     }
 }

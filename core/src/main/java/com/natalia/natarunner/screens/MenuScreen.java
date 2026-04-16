@@ -1,189 +1,234 @@
 package com.natalia.natarunner.screens;
 
+import com.natalia.natarunner.NataRunner;
+import com.natalia.natarunner.manager.AudioManager;
+import com.natalia.natarunner.manager.GameSettings;
+import com.natalia.natarunner.manager.ResourceManager;
+import com.natalia.natarunner.ui.LogoIntroAnimation;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.natalia.natarunner.NataRunner;
-import com.natalia.natarunner.manager.GameSettings;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.kotcrab.vis.ui.VisUI;
+import com.kotcrab.vis.ui.widget.VisLabel;
+import com.kotcrab.vis.ui.widget.VisTable;
+import com.kotcrab.vis.ui.widget.VisTextField;
 
 public class MenuScreen implements Screen {
 
     private final Game game;
+    private final AudioManager audio;
+    private final ResourceManager resources;
+    private final GameSettings settings;
 
     private SpriteBatch spriteBatch;
     private FitViewport viewport;
-    private BitmapFont font;
 
-    private boolean editingName;
-    private StringBuilder nameBuffer;
-    private InputAdapter textInputProcessor;
+    private Texture fondoMenu;
+    private Texture logoTexture;
+    private LogoIntroAnimation logoIntro;
 
-    public MenuScreen(Game game) {
+    private Music music;
+
+    private Texture startTexture;
+    private Texture setupTexture;
+    private Texture quitTexture;
+
+    private final Rectangle startRectangulo = new Rectangle();
+    private final Rectangle setupRectangulo = new Rectangle();
+    private final Rectangle quitRectangulo = new Rectangle();
+
+    private boolean initialized = false;
+
+    private Stage stage;
+    private VisTextField nameField;
+    private VisLabel nameLabel;
+    private VisTable table;
+
+    public MenuScreen(Game game, AudioManager audio, ResourceManager resources, GameSettings settings) {
         this.game = game;
+        this.audio = audio;
+        this.resources = resources;
+        this.settings = settings;
     }
 
     @Override
     public void show() {
-        if (spriteBatch == null) {
+        if (!initialized) {
+            music = resources.menuMusic;
+            music.setLooping(true);
+            audio.playMusic(music);
+
             spriteBatch = new SpriteBatch();
-            viewport = new FitViewport(1280, 720);
-            font = new BitmapFont();
-            font.getData().setScale(2f);
-            font.setColor(Color.WHITE);
+            viewport = new FitViewport(12.28f, 7.68f);
+
+            fondoMenu = resources.fondoMenu;
+            logoTexture = resources.logoTexture;
+            logoIntro = new LogoIntroAnimation(logoTexture, viewport);
+
+            startTexture = resources.startTexture;
+            setupTexture = resources.setupTexture;
+            quitTexture = resources.quitTexture;
+
+            initialized = true;
+
+            if (!VisUI.isLoaded()) {
+                VisUI.load();
+            }
+
+            stage = new Stage(new ScreenViewport());
+            stage.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
+
+            table = new VisTable();
+            table.bottom().right();
+            table.setFillParent(true);
+            table.setVisible(false);
+
+            Label.LabelStyle labelStyle = new Label.LabelStyle();
+            labelStyle.font = resources.fontMenu;
+            labelStyle.fontColor = Color.WHITE;
+
+            nameLabel = new VisLabel("Player Name:", labelStyle);
+
+            VisTextField.VisTextFieldStyle textFieldStyle =
+                new VisTextField.VisTextFieldStyle(
+                    VisUI.getSkin().get(VisTextField.VisTextFieldStyle.class)
+                );
+            textFieldStyle.font = resources.fontMenu;
+
+            nameField = new VisTextField(settings.getPlayerName(), textFieldStyle);
+            nameField.setMaxLength(12);
+
+            table.add(nameLabel).padRight(10);
+            table.add(nameField).width(180).height(40);
+            table.pad(20);
+
+            stage.addActor(table);
+
+            InputMultiplexer multiplexer = new InputMultiplexer();
+            multiplexer.addProcessor(stage);
+            Gdx.input.setInputProcessor(multiplexer);
+        }
+    }
+
+    private void input() {
+        if (!logoIntro.isFinished()) return;
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F9)) {
+            ((NataRunner) game).scoreManager.clearScores();
+            System.out.println("Scores borrados.");
         }
 
-        GameSettings settings = ((NataRunner) game).settings;
-        nameBuffer = new StringBuilder(settings.getPlayerName()); // El nombre se edita aquí y al pulsar enter se guarda definitivamente
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+            Vector2 mouse = new Vector2(Gdx.input.getX(), Gdx.input.getY());
+            viewport.unproject(mouse);
 
-        textInputProcessor = new InputAdapter() { // Escucha caracteres escritos
-            @Override
-            public boolean keyTyped(char character) { // keyTyped() escucha caracteres escritos
-                if (!editingName) return false; // Si no estamos editando el nombre este metodo no hace nada
-
-                if (character == '\b') {
-                    if (nameBuffer.length() > 0) {
-                        nameBuffer.deleteCharAt(nameBuffer.length() - 1);
-                    }
-                    return true; // Para indicar que esta tecla ya se ha gestionado
+            if (startRectangulo.contains(mouse)) {
+                String playerName = nameField.getText().trim();
+                if (playerName.isEmpty()) {
+                    playerName = "NONAME";
                 }
+                settings.setPlayerName(playerName);
 
-                if (character == '\r' || character == '\n') { // Se detecta ENTER
-                    savePlayerName();
-                    return true;
-                }
+                NataRunner nataRunner = (NataRunner) game;
+                nataRunner.session.reset();
 
-                if (character == 27) { // Código de Escape en este contexto --> no guarda y deja nombre preexistente
-                    cancelEditingName();
-                    return true;
-                }
-
-                // Para añadir letras, números o símbolos normales.  El límite son 12 caracteres
-                if (character >= 32 && character <= 126 && nameBuffer.length() < 12) {
-                    nameBuffer.append(character);
-                    return true;
-                }
-
-                return false;
+                audio.stopMusic();
+                game.setScreen(new TearsScreen(game));
             }
-        };
 
-        Gdx.input.setInputProcessor(textInputProcessor);
+            if (setupRectangulo.contains(mouse)) {
+                game.setScreen(new ConfigurationScreen(game, this));
+            }
+
+            if (quitRectangulo.contains(mouse)) {
+                Gdx.app.exit();
+            }
+        }
     }
 
     @Override
     public void render(float delta) {
         input();
+        logic(delta);
+        draw();
 
-        GameSettings settings = ((NataRunner) game).settings;
+        stage.act(delta);
+        stage.draw();
+    }
 
-        ScreenUtils.clear(0.05f, 0.05f, 0.08f, 1f);
+    private void logic(float delta) {
+        logoIntro.update(delta);
+    }
+
+    private void draw() {
+        ScreenUtils.clear(Color.BLACK);
 
         viewport.apply();
         spriteBatch.setProjectionMatrix(viewport.getCamera().combined);
 
         spriteBatch.begin();
-        font.draw(spriteBatch, "NataRunner", 470, 640);
+        spriteBatch.draw(fondoMenu, 0, 0, viewport.getWorldWidth(), viewport.getWorldHeight());
+        logoIntro.draw(spriteBatch, viewport);
 
-        if (editingName) {
-            font.draw(spriteBatch, "Editando nombre: " + nameBuffer + "_", 220, 540);
-            font.draw(spriteBatch, "ENTER = guardar", 360, 450);
-            font.draw(spriteBatch, "ESC = cancelar", 380, 380);
-            font.draw(spriteBatch, "BACKSPACE = borrar", 300, 310);
-        } else {
-            font.draw(spriteBatch, "Jugador: " + settings.getPlayerName(), 360, 540);
-            font.draw(spriteBatch, "Pulsa N para cambiar nombre", 320, 470);
-            font.draw(spriteBatch, "Pulsa ENTER para empezar", 360, 390);
-            font.draw(spriteBatch, "Pulsa C para configuracion", 340, 320);
-            font.draw(spriteBatch, "Pulsa I para ver instrucciones", 320, 250);
-            font.draw(spriteBatch, "Pulsa ESC para salir", 390, 180);
+        if (logoIntro.isFinished()) {
+            sacarBotones();
+            table.setVisible(true);
         }
 
         spriteBatch.end();
     }
 
-    private void input() {
-        if (editingName) {
-            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) { // Si estás editando y pulsas ENTER guardas nombre
-                savePlayerName();
-            }
+    private void sacarBotones() {
+        float width = 3f;
+        float height = 1f;
+        float spacing = 0.1f;
 
-            if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-                cancelEditingName();
-            }
+        float x = viewport.getWorldWidth() / 2f - width / 2f;
+        float y = viewport.getWorldHeight() / 2f - height / 2f;
 
-            return;
-        }
+        startRectangulo.set(x, y, width, height);
+        setupRectangulo.set(x, y - height - spacing, width, height);
+        quitRectangulo.set(x, y - (height + spacing) * 2, width, height);
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            game.setScreen(new TearsScreen(game));
-        }
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.C)) {
-            game.setScreen(new ConfigurationScreen(game, this));
-        }
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.I)) {
-            game.setScreen(new InstructionsScreen(game, this));
-        }
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.N)) {
-            startEditingName();
-        }
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            Gdx.app.exit();
-        }
-    }
-
-    private void startEditingName() {
-        GameSettings settings = ((NataRunner) game).settings;
-        editingName = true;
-        nameBuffer.setLength(0);
-        nameBuffer.append(settings.getPlayerName());
-    }
-
-    private void savePlayerName() {
-        GameSettings settings = ((NataRunner) game).settings;
-        settings.setPlayerName(nameBuffer.toString());
-        editingName = false;
-    }
-
-    private void cancelEditingName() {
-        editingName = false;
-        GameSettings settings = ((NataRunner) game).settings;
-        nameBuffer.setLength(0);
-        nameBuffer.append(settings.getPlayerName());
+        spriteBatch.draw(startTexture, startRectangulo.x, startRectangulo.y, width, height);
+        spriteBatch.draw(setupTexture, setupRectangulo.x, setupRectangulo.y, width, height);
+        spriteBatch.draw(quitTexture, quitRectangulo.x, quitRectangulo.y, width, height);
     }
 
     @Override
     public void resize(int width, int height) {
         if (width <= 0 || height <= 0) return;
+
         viewport.update(width, height, true);
+
+        if (stage != null) {
+            stage.getViewport().update(width, height, true);
+        }
     }
 
-    @Override
-    public void pause() {
-    }
-
-    @Override
-    public void resume() {
-    }
+    @Override public void pause() { }
+    @Override public void resume() { }
 
     @Override
     public void hide() {
-        Gdx.input.setInputProcessor(null);
     }
 
     @Override
     public void dispose() {
+        if (stage != null) stage.dispose();
         if (spriteBatch != null) spriteBatch.dispose();
-        if (font != null) font.dispose();
     }
 }

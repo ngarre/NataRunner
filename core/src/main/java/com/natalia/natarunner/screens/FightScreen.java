@@ -109,7 +109,7 @@ public class FightScreen implements Screen {
     private void input(float delta) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             audio.stopMusic();
-            game.setScreen(new MenuScreen(game));
+            game.setScreen(new MenuScreen(game, ((NataRunner) game).audioManager, ((NataRunner) game).resources, ((NataRunner) game).settings));
             return;
         }
 
