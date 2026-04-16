@@ -57,6 +57,7 @@ public class TearsScreen implements Screen {
 
     private int score = 100;
     private int hearts = GameConfig.cuantosCorazones;
+    private int scoreBasta;
 
     public TearsScreen(Game game) {
         this.game = game;
@@ -104,6 +105,10 @@ public class TearsScreen implements Screen {
         gotaRojaTimer = 0f;
         tiempoTotal = 0f;
 
+        scoreBasta = ((NataRunner) game).settings.isEasyMode()
+            ? GameConfig.puntosSiFacil
+            : GameConfig.puntosSiDificil;
+
         gotasBlancas.clear();
         gotasAmarillas.clear();
         gotasRojas.clear();
@@ -146,7 +151,16 @@ public class TearsScreen implements Screen {
         updateYellowDrops(delta);
         updateRedDrops(delta);
 
+        checkLevelEnd();
+
         ((NataRunner) game).session.setTearsScore(score);
+    }
+
+    private void checkLevelEnd() {
+        if (score >= scoreBasta) {
+            ((NataRunner) game).session.setTearsScore(score);
+            game.setScreen(new FightScreen(game));
+        }
     }
 
     private void spawnWhiteDrops(float delta) {
@@ -297,8 +311,9 @@ public class TearsScreen implements Screen {
 
         font.draw(spriteBatch, "LEVEL 1: TEARS DISTRICT", 390, 730);
         smallFont.draw(spriteBatch, "SCORE: " + score, 20, 745);
-        smallFont.draw(spriteBatch, "HEARTS: " + hearts, 180, 745);
-        smallFont.draw(spriteBatch, "Jugador: " + ((NataRunner) game).settings.getPlayerName(), 340, 745);
+        smallFont.draw(spriteBatch, "META: " + scoreBasta, 180, 745);
+        smallFont.draw(spriteBatch, "HEARTS: " + hearts, 340, 745);
+        smallFont.draw(spriteBatch, "Jugador: " + ((NataRunner) game).settings.getPlayerName(), 500, 745);
         smallFont.draw(spriteBatch, "ESC = volver al menu", 930, 745);
 
         spriteBatch.draw(levelTexture, 460, 210, 300, 300);
