@@ -9,6 +9,8 @@ import com.natalia.natarunner.model.entities.drops.WhiteDrop;
 import com.natalia.natarunner.model.entities.drops.YellowDrop;
 import com.natalia.natarunner.screens.context.TearsGameContext;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.math.Vector2;
+import com.natalia.natarunner.ui.FloatingText;
 
 public class TearsRenderManager {
 
@@ -127,6 +129,18 @@ public class TearsRenderManager {
 
         if (ctx.state == TearsGameContext.GameState.GAMEOVER) {
             sacarGameOver(screenWidth, screenHeight);
+        }
+
+        if (ctx.smallFont != null) {
+            for (FloatingText ft : ctx.floatingTexts) {
+                Vector2 screenPos = new Vector2(ft.pos.x, ft.pos.y);
+                viewport.project(screenPos);
+
+                ctx.smallFont.setColor(ft.color.r, ft.color.g, ft.color.b, ft.alpha);
+                ctx.smallFont.draw(spriteBatch, ft.text, screenPos.x, screenPos.y);
+            }
+
+            ctx.smallFont.setColor(1f, 1f, 1f, 1f);
         }
 
         // Texto inferior derecho
