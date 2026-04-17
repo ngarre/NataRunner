@@ -112,6 +112,7 @@ public class TearsScreen implements Screen {
 
     private void input(float delta) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            audio.stopMusic();
             game.setScreen(new MenuScreen(game, ((NataRunner) game).audioManager, ((NataRunner) game).resources, ((NataRunner) game).settings));
             return;
         }
@@ -145,6 +146,7 @@ public class TearsScreen implements Screen {
     private void checkLevelEnd() {
         if (score >= scoreBasta) {
             ((NataRunner) game).session.setTearsScore(score);
+            audio.stopMusic();
             game.setScreen(new FightScreen(game));
         }
     }
@@ -199,6 +201,7 @@ public class TearsScreen implements Screen {
             float y = viewport.getWorldHeight() - hudHeight;
 
             gotasRojas.add(new RedDrop(resources.gotaRojaTexture, x, y));
+            audio.playSound(resources.gotaRojaSound);
         }
     }
 
@@ -212,6 +215,7 @@ public class TearsScreen implements Screen {
             } else if (playerTears.getBounds().overlaps(gota.getBounds())) {
                 gotasBlancas.removeIndex(i);
                 score += WhiteDrop.POINTS;
+                audio.playSound(resources.gotaBlancaSound);
             }
         }
     }
@@ -222,13 +226,14 @@ public class TearsScreen implements Screen {
             gota.update(delta);
 
             if (gota.consumeTransformEvent()) {
-                // Más adelante aquí conectaremos sonido de transformación.
+                audio.playSound(resources.sonidoSable);
             }
 
             if (gota.isOutOfScreen()) {
                 gotasAmarillas.removeIndex(i);
                 score -= YellowDrop.PENALTY;
                 if (score < 0) score = 0;
+                audio.playSound(resources.gotaAmarillaFallSound);
             } else if (playerTears.getBounds().overlaps(gota.getBounds())) {
                 gotasAmarillas.removeIndex(i);
 
@@ -237,6 +242,7 @@ public class TearsScreen implements Screen {
                     if (hearts < 0) hearts = 0;
                 } else {
                     score += YellowDrop.POINTS;
+                    audio.playSound(resources.gotaAmarillaSound);
                 }
             }
         }
@@ -255,6 +261,7 @@ public class TearsScreen implements Screen {
                 gotasRojas.removeIndex(i);
                 hearts--;
                 if (hearts < 0) hearts = 0;
+                audio.playSound(resources.sonidoMortal);
             }
         }
     }
@@ -324,6 +331,7 @@ public class TearsScreen implements Screen {
 
     @Override
     public void hide() {
+        audio.stopMusic();
     }
 
     @Override
