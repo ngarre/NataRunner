@@ -146,7 +146,7 @@ public class MenuScreen implements Screen {
                 nataRunner.session.reset();
 
                 audio.stopMusic();
-                game.setScreen(new TearsScreen(game));
+                game.setScreen(new TearsScreen(game, audio, resources, settings));
             }
 
             if (setupRectangulo.contains(mouse)) {
