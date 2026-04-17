@@ -58,7 +58,6 @@ public class TearsLogicManager {
         ctx.gotaRojaTimer = 0f;
         ctx.tiempoTotal = 0f;
         ctx.state = TearsGameContext.GameState.INTRO;
-        ctx.playerName = settings.getPlayerName();
 
         ctx.scoreBasta = settings.isEasyMode()
             ? GameConfig.puntosSiFacil
@@ -67,6 +66,23 @@ public class TearsLogicManager {
         ctx.gotasBlancas.clear();
         ctx.gotasAmarillas.clear();
         ctx.gotasRojas.clear();
+        ctx.floatingTexts.clear();
+
+        ctx.scoreBar = new com.natalia.natarunner.ui.ScoreBar(
+            ctx.scoreBasta,
+            220f,
+            20f,
+            20f
+        );
+
+        ctx.countdownTimer = new com.natalia.natarunner.ui.CountdownTimer(
+            30f,
+            resources.hudSmallFont
+        );
+
+        ctx.flashMessage = new com.natalia.natarunner.ui.FlashMessage(
+            1.5f
+        );
 
         music = resources.tearsMusic;
         music.setLooping(true);
@@ -128,6 +144,9 @@ public class TearsLogicManager {
     }
 
     private void update(float delta) {
+        ctx.countdownTimer.update(delta);
+        ctx.flashMessage.update(delta);
+
         ctx.tiempoTotal += delta;
 
         ctx.playerTears.update(
@@ -144,6 +163,17 @@ public class TearsLogicManager {
         updateWhiteDrops(delta);
         updateYellowDrops(delta);
         updateRedDrops(delta);
+
+        for (int i = ctx.floatingTexts.size - 1; i >= 0; i--) {
+            com.natalia.natarunner.ui.FloatingText ft = ctx.floatingTexts.get(i);
+            ft.timeLeft -= delta;
+            ft.pos.y += 25f * delta;
+            ft.alpha = Math.max(0f, ft.timeLeft);
+
+            if (ft.timeLeft <= 0f) {
+                ctx.floatingTexts.removeIndex(i);
+            }
+        }
 
         checkLevelEnd();
 
@@ -224,6 +254,13 @@ public class TearsLogicManager {
             } else if (ctx.playerTears.getBounds().overlaps(gota.getBounds())) {
                 ctx.gotasBlancas.removeIndex(i);
                 ctx.score += WhiteDrop.POINTS;
+                ctx.floatingTexts.add(new com.natalia.natarunner.ui.FloatingText(
+                    "+10",
+                    gota.getBounds().x,
+                    gota.getBounds().y,
+                    1f,
+                    com.badlogic.gdx.graphics.Color.WHITE
+                ));
                 audio.playSound(resources.gotaBlancaSound);
             }
         }
@@ -241,8 +278,17 @@ public class TearsLogicManager {
             if (gota.isOutOfScreen()) {
                 ctx.gotasAmarillas.removeIndex(i);
                 ctx.score -= YellowDrop.PENALTY;
+                ctx.floatingTexts.add(new com.natalia.natarunner.ui.FloatingText(
+                    "-25",
+                    gota.getBounds().x,
+                    gota.getBounds().y,
+                    1f,
+                    com.badlogic.gdx.graphics.Color.ORANGE
+                ));
+
                 if (ctx.score < 0) ctx.score = 0;
                 audio.playSound(resources.gotaAmarillaFallSound);
+
             } else if (ctx.playerTears.getBounds().overlaps(gota.getBounds())) {
                 ctx.gotasAmarillas.removeIndex(i);
 
@@ -251,6 +297,13 @@ public class TearsLogicManager {
                     if (ctx.hearts < 0) ctx.hearts = 0;
                 } else {
                     ctx.score += YellowDrop.POINTS;
+                    ctx.floatingTexts.add(new com.natalia.natarunner.ui.FloatingText(
+                        "+15",
+                        gota.getBounds().x,
+                        gota.getBounds().y,
+                        1f,
+                        com.badlogic.gdx.graphics.Color.YELLOW
+                    ));
                     audio.playSound(resources.gotaAmarillaSound);
                 }
             }

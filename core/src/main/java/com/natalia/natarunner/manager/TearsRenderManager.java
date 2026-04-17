@@ -18,7 +18,10 @@ public class TearsRenderManager {
 
     private SpriteBatch spriteBatch;
 
-    public TearsRenderManager(ResourceManager resources, TearsGameContext ctx, FitViewport viewport, FitViewport hudViewport) {
+    public TearsRenderManager(ResourceManager resources,
+                              TearsGameContext ctx,
+                              FitViewport viewport,
+                              FitViewport hudViewport) {
         this.resources = resources;
         this.ctx = ctx;
         this.viewport = viewport;
@@ -38,6 +41,11 @@ public class TearsRenderManager {
     public void draw() {
         ScreenUtils.clear(Color.BLACK);
 
+        drawWorld();
+        drawHud();
+    }
+
+    private void drawWorld() {
         viewport.apply();
         spriteBatch.setProjectionMatrix(viewport.getCamera().combined);
 
@@ -49,10 +57,6 @@ public class TearsRenderManager {
         spriteBatch.draw(resources.fondoTears, 0, 0, worldWidth, worldHeight);
 
         if (ctx.state == TearsGameContext.GameState.PLAYING) {
-            if (ctx.playerTears != null) {
-                ctx.playerTears.draw(spriteBatch);
-            }
-
             for (WhiteDrop gota : ctx.gotasBlancas) {
                 gota.draw(spriteBatch);
             }
@@ -64,10 +68,16 @@ public class TearsRenderManager {
             for (RedDrop gota : ctx.gotasRojas) {
                 gota.draw(spriteBatch);
             }
+
+            if (ctx.playerTears != null) {
+                ctx.playerTears.draw(spriteBatch);
+            }
         }
 
         spriteBatch.end();
+    }
 
+    private void drawHud() {
         hudViewport.apply();
         spriteBatch.setProjectionMatrix(hudViewport.getCamera().combined);
 
@@ -92,10 +102,45 @@ public class TearsRenderManager {
         );
         spriteBatch.setColor(1f, 1f, 1f, 1f);
 
-        ctx.font.draw(spriteBatch, ctx.level1Title, 390, 730);
+        // Score
         ctx.smallFont.draw(spriteBatch, "SCORE: " + ctx.score, 20, 745);
-        ctx.smallFont.draw(spriteBatch, "META: " + ctx.scoreBasta, 180, 745);
-        ctx.smallFont.draw(spriteBatch, "HEARTS: " + ctx.hearts, 340, 745);
+
+        // Corazones con iconos
+        for (int i = 0; i < ctx.hearts; i++) {
+            spriteBatch.draw(resources.minicorazon, 250 + i * 40, 715, 30, 30);
+        }
+
+        // Timer
+        if (ctx.countdownTimer != null) {
+            ctx.countdownTimer.draw(spriteBatch, 640f, 745f);
+        }
+
+        // Score bar
+        if (ctx.scoreBar != null) {
+            ctx.scoreBar.draw(
+                spriteBatch,
+                resources.hudBackground,
+                ctx.score,
+                screenWidth,
+                725f
+            );
+        }
+
+        // Mensaje flash
+        if (ctx.flashMessage != null) {
+            ctx.flashMessage.draw(
+                spriteBatch,
+                resources.hudBackground,
+                resources.hudSmallFont,
+                screenWidth,
+                50f
+            );
+        }
+
+        // Texto inferior derecho
+        ctx.smallFont.draw(spriteBatch, ctx.level1Title, 900, 30);
+
+        // Salida
         ctx.smallFont.draw(spriteBatch, "ESC = volver al menu", 930, 745);
 
         spriteBatch.end();

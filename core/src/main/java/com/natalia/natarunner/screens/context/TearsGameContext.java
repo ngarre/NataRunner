@@ -1,18 +1,21 @@
 package com.natalia.natarunner.screens.context;
 
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.utils.Array;
 import com.natalia.natarunner.config.GameConfig;
 import com.natalia.natarunner.model.entities.drops.RedDrop;
 import com.natalia.natarunner.model.entities.drops.WhiteDrop;
 import com.natalia.natarunner.model.entities.drops.YellowDrop;
 import com.natalia.natarunner.model.entities.player.PlayerTears;
+import com.natalia.natarunner.ui.CountdownTimer;
+import com.natalia.natarunner.ui.FlashMessage;
+import com.natalia.natarunner.ui.FloatingText;
+import com.natalia.natarunner.ui.ScoreBar;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.Array;
 
 public class TearsGameContext {
 
     public String level1Title = "LEVEL 1: TEARS DISTRICT";
-    public String playerName = "NONAME";
 
     public enum GameState {
         INTRO,
@@ -23,8 +26,10 @@ public class TearsGameContext {
 
     public GameState state = GameState.INTRO;
 
-    public boolean initialized = false;
+    public boolean freezeMode = false;
+    public boolean pauseOnlyMusic = false;
     public boolean dragging = false;
+    public boolean initialized = false;
 
     public float hudHeight = 1f;
     public float barHeight = 60f;
@@ -43,6 +48,11 @@ public class TearsGameContext {
     public Array<WhiteDrop> gotasBlancas = new Array<>();
     public Array<YellowDrop> gotasAmarillas = new Array<>();
     public Array<RedDrop> gotasRojas = new Array<>();
+    public Array<FloatingText> floatingTexts = new Array<>();
+
+    public FlashMessage flashMessage;
+    public ScoreBar scoreBar;
+    public CountdownTimer countdownTimer;
 
     public Rectangle level1Rectangulo = new Rectangle();
 
