@@ -70,9 +70,9 @@ public class TearsLogicManager {
 
         ctx.scoreBar = new com.natalia.natarunner.ui.ScoreBar(
             ctx.scoreBasta,
-            220f,
-            20f,
-            20f
+            225f,
+            18f,
+            18f
         );
 
         ctx.countdownTimer = new com.natalia.natarunner.ui.CountdownTimer(

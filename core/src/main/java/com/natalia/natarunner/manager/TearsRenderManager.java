@@ -103,7 +103,7 @@ public class TearsRenderManager {
         spriteBatch.setColor(1f, 1f, 1f, 1f);
 
         // Score
-        ctx.smallFont.draw(spriteBatch, "SCORE: " + ctx.score, 20, 745);
+        ctx.font.draw(spriteBatch, "SCORE: " + ctx.score, 15, 745);
 
         // Corazones con iconos
         for (int i = 0; i < ctx.hearts; i++) {
@@ -112,7 +112,7 @@ public class TearsRenderManager {
 
         // Timer
         if (ctx.countdownTimer != null) {
-            ctx.countdownTimer.draw(spriteBatch, 700f, 745f);
+            ctx.countdownTimer.draw(spriteBatch, 610f, 745f);
         }
 
         // Score bar
@@ -122,7 +122,7 @@ public class TearsRenderManager {
                 resources.hudBackground,
                 ctx.score,
                 screenWidth,
-                725f
+                727f
             );
         }
 
