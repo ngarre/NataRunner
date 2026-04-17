@@ -2,6 +2,7 @@ package com.natalia.natarunner.manager;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -16,6 +17,9 @@ import com.natalia.natarunner.screens.MenuScreen;
 import com.natalia.natarunner.screens.context.TearsGameContext;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Texture;
 
 public class TearsLogicManager {
 
@@ -29,6 +33,30 @@ public class TearsLogicManager {
     private final Vector2 mouseHud = new Vector2();
 
     private Music music;
+
+    private Screen ownerScreen;
+    public void setOwnerScreen(Screen ownerScreen) {
+        this.ownerScreen = ownerScreen;
+    }
+
+    private Texture gotaBlanca1;
+    private Texture gotaBlanca2;
+    private Texture gotaBlanca3;
+
+    private Texture gotaAmarillaTexture;
+    private Texture gotaAmarillaSableadaTexture;
+    private Texture gotaRojaTexture;
+
+    private Sound gotaBlancaSound;
+    private Sound gotaAmarillaSound;
+    private Sound gotaAmarillaFallSound;
+    private Sound sonidoSable;
+    private Sound gotaRojaSound;
+
+    private TearsRenderManager renderManager;
+    public void setRenderManager(TearsRenderManager renderManager) {
+        this.renderManager = renderManager;
+    }
 
     public TearsLogicManager(
         Game game,
@@ -49,7 +77,48 @@ public class TearsLogicManager {
     }
 
     public void show() {
-        ctx.playerTears = new PlayerTears(resources.manosTexture, resources.manosCerradasTexture, 5.5f, 1.2f);
+        Gdx.input.setInputProcessor(null);
+
+        if (!ctx.initialized) {
+
+            ctx.scoreBasta = settings.isEasyMode()
+                ? GameConfig.puntosSiFacil
+                : GameConfig.puntosSiDificil;
+
+            ctx.font = resources.hudFont;
+            ctx.smallFont = resources.hudSmallFont;
+
+            ctx.flashMessage = new com.natalia.natarunner.ui.FlashMessage(1.5f);
+            ctx.scoreBar = new com.natalia.natarunner.ui.ScoreBar(ctx.scoreBasta, 220f, 20f, 20f);
+            ctx.countdownTimer = new com.natalia.natarunner.ui.CountdownTimer(60f, ctx.font);
+
+            music = resources.tearsMusic;
+            music.setLooping(true);
+            audio.stopMusic();
+
+            ctx.playerTears = new PlayerTears(
+                resources.manosTexture,
+                resources.manosCerradasTexture,
+                12.28f / 2f - 0.5f,
+                0.2f
+            );
+
+            gotaBlanca1 = resources.gotaBlanca1;
+            gotaBlanca2 = resources.gotaBlanca2;
+            gotaBlanca3 = resources.gotaBlanca3;
+
+            gotaAmarillaTexture = resources.gotaAmarillaTexture;
+            gotaAmarillaSableadaTexture = resources.gotaAmarillaSableadaTexture;
+            gotaRojaTexture = resources.gotaRojaTexture;
+
+            gotaBlancaSound = resources.gotaBlancaSound;
+            gotaAmarillaSound = resources.gotaAmarillaSound;
+            gotaAmarillaFallSound = resources.gotaAmarillaFallSound;
+            sonidoSable = resources.sonidoSable;
+            gotaRojaSound = resources.gotaRojaSound;
+
+            ctx.initialized = true;
+        }
 
         ctx.score = 100;
         ctx.hearts = GameConfig.cuantosCorazones;
@@ -59,33 +128,14 @@ public class TearsLogicManager {
         ctx.tiempoTotal = 0f;
         ctx.state = TearsGameContext.GameState.INTRO;
 
-        ctx.scoreBasta = settings.isEasyMode()
-            ? GameConfig.puntosSiFacil
-            : GameConfig.puntosSiDificil;
-
         ctx.gotasBlancas.clear();
         ctx.gotasAmarillas.clear();
         ctx.gotasRojas.clear();
         ctx.floatingTexts.clear();
 
-        ctx.scoreBar = new com.natalia.natarunner.ui.ScoreBar(
-            ctx.scoreBasta,
-            225f,
-            18f,
-            18f
-        );
-
-        ctx.countdownTimer = new com.natalia.natarunner.ui.CountdownTimer(
-            60f,
-            ctx.font
-        );
-
-        ctx.flashMessage = new com.natalia.natarunner.ui.FlashMessage(1.5f);
-
-        music = resources.tearsMusic;
-        music.setLooping(true);
-        audio.stopMusic();
-        audio.playMusic(music);
+        if (ctx.countdownTimer != null) {
+            ctx.countdownTimer.reset(60f);
+        }
 
         ((NataRunner) game).session.reset();
         ((NataRunner) game).session.setTearsScore(ctx.score);
@@ -119,7 +169,7 @@ public class TearsLogicManager {
             }
 
             mouseHud.set(Gdx.input.getX(), Gdx.input.getY());
-            hudViewport.unproject(mouseHud);
+            renderManager.getHudViewport().unproject(mouseHud);
 
             if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)
                 && ctx.level1Rectangulo.contains(mouseHud)) {
@@ -128,6 +178,7 @@ public class TearsLogicManager {
 
             if (startGame) {
                 ctx.state = TearsGameContext.GameState.PLAYING;
+                audio.playMusic(music);
             }
 
             return;
@@ -136,7 +187,8 @@ public class TearsLogicManager {
         ctx.playerTears.handleKeyboard(delta);
 
         if (settings.isMouseEnabled() && Gdx.input.isTouched()) {
-            Vector2 mouseWorld = viewport.unproject(new Vector2(Gdx.input.getX(), Gdx.input.getY()));
+            Vector2 mouseWorld = new Vector2(Gdx.input.getX(), Gdx.input.getY());
+            renderManager.getViewport().unproject(mouseWorld);
             ctx.playerTears.handleMouseDrag(mouseWorld);
         }
     }
@@ -162,26 +214,30 @@ public class TearsLogicManager {
         updateYellowDrops(delta);
         updateRedDrops(delta);
 
-        for (int i = ctx.floatingTexts.size - 1; i >= 0; i--) {
-            com.natalia.natarunner.ui.FloatingText ft = ctx.floatingTexts.get(i);
-            ft.timeLeft -= delta;
-            ft.pos.y += 25f * delta;
-            ft.alpha = Math.max(0f, ft.timeLeft);
-
-            if (ft.timeLeft <= 0f) {
-                ctx.floatingTexts.removeIndex(i);
-            }
-        }
+        updateFloatingTexts(delta);
 
         checkLevelEnd();
 
         ((NataRunner) game).session.setTearsScore(ctx.score);
     }
 
+    private void updateFloatingTexts(float delta) {
+        for (int i = ctx.floatingTexts.size - 1; i >= 0; i--) {
+            com.natalia.natarunner.ui.FloatingText ft = ctx.floatingTexts.get(i);
+            ft.timeLeft -= delta;
+            ft.pos.y += 0.8f * delta;
+            ft.alpha = MathUtils.clamp(ft.timeLeft / 0.6f, 0f, 1f);
+
+            if (ft.timeLeft <= 0f) {
+                ctx.floatingTexts.removeIndex(i);
+            }
+        }
+    }
+
     private void checkLevelEnd() {
         if (ctx.score >= ctx.scoreBasta) {
-            ((NataRunner) game).session.setTearsScore(ctx.score);
             audio.stopMusic();
+            ((NataRunner) game).session.setTearsScore(ctx.countdownTimer.getRemainingSeconds());
             game.setScreen(new FightScreen(game));
         }
     }
@@ -251,15 +307,16 @@ public class TearsLogicManager {
                 ctx.gotasBlancas.removeIndex(i);
             } else if (ctx.playerTears.getBounds().overlaps(gota.getBounds())) {
                 ctx.gotasBlancas.removeIndex(i);
+                audio.playSound(gotaBlancaSound);
                 ctx.score += WhiteDrop.POINTS;
+
                 ctx.floatingTexts.add(new com.natalia.natarunner.ui.FloatingText(
-                    "+10",
-                    gota.getBounds().x,
-                    gota.getBounds().y,
-                    1f,
-                    com.badlogic.gdx.graphics.Color.WHITE
+                    "+" + WhiteDrop.POINTS,
+                    gota.getSprite().getX(),
+                    gota.getSprite().getY(),
+                    0.6f,
+                    Color.WHITE
                 ));
-                audio.playSound(resources.gotaBlancaSound);
             }
         }
     }
@@ -270,22 +327,25 @@ public class TearsLogicManager {
             gota.update(delta);
 
             if (gota.consumeTransformEvent()) {
-                audio.playSound(resources.sonidoSable);
+                audio.playSound(sonidoSable);
             }
 
             if (gota.isOutOfScreen()) {
-                ctx.gotasAmarillas.removeIndex(i);
-                ctx.score -= YellowDrop.PENALTY;
-                ctx.floatingTexts.add(new com.natalia.natarunner.ui.FloatingText(
-                    "-25",
-                    gota.getBounds().x,
-                    gota.getBounds().y,
-                    1f,
-                    com.badlogic.gdx.graphics.Color.ORANGE
-                ));
+                float x = gota.getSprite().getX();
+                float y = Math.max(gota.getSprite().getY(), 0.2f);
 
+                ctx.gotasAmarillas.removeIndex(i);
+                audio.playSound(gotaAmarillaFallSound);
+                ctx.score -= YellowDrop.PENALTY;
                 if (ctx.score < 0) ctx.score = 0;
-                audio.playSound(resources.gotaAmarillaFallSound);
+
+                ctx.floatingTexts.add(new com.natalia.natarunner.ui.FloatingText(
+                    "-" + YellowDrop.PENALTY,
+                    x,
+                    y,
+                    0.6f,
+                    Color.YELLOW
+                ));
 
             } else if (ctx.playerTears.getBounds().overlaps(gota.getBounds())) {
                 ctx.gotasAmarillas.removeIndex(i);
@@ -294,15 +354,16 @@ public class TearsLogicManager {
                     ctx.hearts--;
                     if (ctx.hearts < 0) ctx.hearts = 0;
                 } else {
+                    audio.playSound(gotaAmarillaSound);
                     ctx.score += YellowDrop.POINTS;
+
                     ctx.floatingTexts.add(new com.natalia.natarunner.ui.FloatingText(
-                        "+15",
-                        gota.getBounds().x,
-                        gota.getBounds().y,
-                        1f,
-                        com.badlogic.gdx.graphics.Color.YELLOW
+                        "+" + YellowDrop.POINTS,
+                        gota.getSprite().getX(),
+                        gota.getSprite().getY(),
+                        0.6f,
+                        Color.YELLOW
                     ));
-                    audio.playSound(resources.gotaAmarillaSound);
                 }
             }
         }
