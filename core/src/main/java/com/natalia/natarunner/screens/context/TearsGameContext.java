@@ -12,6 +12,7 @@ import com.natalia.natarunner.model.entities.player.PlayerTears;
 public class TearsGameContext {
 
     public String level1Title = "LEVEL 1: TEARS DISTRICT";
+    public String playerName = "NONAME";
 
     public enum GameState {
         INTRO,
