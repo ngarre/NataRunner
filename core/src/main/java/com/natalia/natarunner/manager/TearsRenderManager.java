@@ -112,7 +112,7 @@ public class TearsRenderManager {
 
         // Timer
         if (ctx.countdownTimer != null) {
-            ctx.countdownTimer.draw(spriteBatch, 640f, 745f);
+            ctx.countdownTimer.draw(spriteBatch, 700f, 745f);
         }
 
         // Score bar
@@ -126,22 +126,8 @@ public class TearsRenderManager {
             );
         }
 
-        // Mensaje flash
-        if (ctx.flashMessage != null) {
-            ctx.flashMessage.draw(
-                spriteBatch,
-                resources.hudBackground,
-                resources.hudSmallFont,
-                screenWidth,
-                50f
-            );
-        }
-
         // Texto inferior derecho
-        ctx.smallFont.draw(spriteBatch, ctx.level1Title, 900, 30);
-
-        // Salida
-        ctx.smallFont.draw(spriteBatch, "ESC = volver al menu", 930, 745);
+        ctx.smallFont.draw(spriteBatch, ctx.level1Title, 875, 28);
 
         spriteBatch.end();
     }

@@ -76,13 +76,11 @@ public class TearsLogicManager {
         );
 
         ctx.countdownTimer = new com.natalia.natarunner.ui.CountdownTimer(
-            30f,
-            resources.hudSmallFont
+            60f,
+            ctx.font
         );
 
-        ctx.flashMessage = new com.natalia.natarunner.ui.FlashMessage(
-            1.5f
-        );
+        ctx.flashMessage = new com.natalia.natarunner.ui.FlashMessage(1.5f);
 
         music = resources.tearsMusic;
         music.setLooping(true);
