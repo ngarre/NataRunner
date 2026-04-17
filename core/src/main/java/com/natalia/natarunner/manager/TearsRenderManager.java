@@ -8,6 +8,7 @@ import com.natalia.natarunner.model.entities.drops.RedDrop;
 import com.natalia.natarunner.model.entities.drops.WhiteDrop;
 import com.natalia.natarunner.model.entities.drops.YellowDrop;
 import com.natalia.natarunner.screens.context.TearsGameContext;
+import com.badlogic.gdx.utils.Align;
 
 public class TearsRenderManager {
 
@@ -87,7 +88,7 @@ public class TearsRenderManager {
         float screenHeight = hudViewport.getWorldHeight();
 
         if (ctx.state == TearsGameContext.GameState.INTRO) {
-            sacarLevel1();
+            sacarLevel1(screenWidth, screenHeight);
             spriteBatch.end();
             return;
         }
@@ -106,9 +107,7 @@ public class TearsRenderManager {
         ctx.font.draw(spriteBatch, "SCORE: " + ctx.score, 15, 745);
 
         // Corazones con iconos
-        for (int i = 0; i < ctx.hearts; i++) {
-            spriteBatch.draw(resources.minicorazon, 250 + i * 40, 715, 30, 30);
-        }
+        renderHearts(screenHeight);
 
         // Timer
         if (ctx.countdownTimer != null) {
@@ -127,12 +126,16 @@ public class TearsRenderManager {
         }
 
         // Texto inferior derecho
-        ctx.smallFont.draw(spriteBatch, ctx.level1Title, 875, 28);
+        renderLevelTitle(spriteBatch);
 
         spriteBatch.end();
     }
 
-    private void sacarLevel1() {
+    private void sacarLevel1(float w, float h) {
+        spriteBatch.setColor(0f, 0f, 0f, 0.75f);
+        spriteBatch.draw(resources.hudBackground, 0, 0, w, h);
+        spriteBatch.setColor(1f, 1f, 1f, 1f);
+
         spriteBatch.draw(
             resources.Level1Texture,
             ctx.level1Rectangulo.x,
@@ -140,14 +143,39 @@ public class TearsRenderManager {
             ctx.level1Rectangulo.width,
             ctx.level1Rectangulo.height
         );
+    }
 
-        if (ctx.smallFont != null) {
-            ctx.smallFont.draw(
-                spriteBatch,
-                "Pulsa ENTER o haz click para comenzar",
-                360,
-                180
-            );
+    private void renderLevelTitle(SpriteBatch spriteBatch) {
+        float marginRight = 20f;
+        float marginBottom = 20f;
+
+        float x = hudViewport.getWorldWidth() - marginRight;
+        float y = marginBottom + resources.fontMenu.getCapHeight();
+
+        resources.fontMenu.draw(
+            spriteBatch,
+            ctx.level1Title,
+            x,
+            y,
+            0,
+            Align.right,
+            false
+        );
+    }
+
+    private void renderHearts(float screenHeight) {
+        if (resources.minicorazon == null) return;
+
+        float heartWidth = 28f;
+        float heartHeight = 28f;
+        float spacing = 8f;
+
+        float startX = 280f;
+        float y = screenHeight - 50f;
+
+        for (int i = 0; i < ctx.hearts; i++) {
+            float x = startX + i * (heartWidth + spacing);
+            spriteBatch.draw(resources.minicorazon, x, y, heartWidth, heartHeight);
         }
     }
 
