@@ -125,10 +125,23 @@ public class TearsRenderManager {
             );
         }
 
+        if (ctx.state == TearsGameContext.GameState.GAMEOVER) {
+            sacarGameOver(screenWidth, screenHeight);
+        }
+
         // Texto inferior derecho
         renderLevelTitle(spriteBatch);
 
         spriteBatch.end();
+    }
+
+    private void sacarGameOver(float screenWidth, float screenHeight) {
+        float imgWidth = 400f;
+        float imgHeight = 400f;
+        float x = (screenWidth - imgWidth) / 2f;
+        float y = (screenHeight - imgHeight) / 2f;
+
+        spriteBatch.draw(resources.gameOver, x, y, imgWidth, imgHeight);
     }
 
     private void sacarLevel1(float w, float h) {
@@ -193,6 +206,20 @@ public class TearsRenderManager {
     }
 
     public void dispose() {
-        if (spriteBatch != null) spriteBatch.dispose();
+        if (spriteBatch != null) {
+            spriteBatch.dispose();
+        }
+    }
+
+    public SpriteBatch getSpriteBatch() {
+        return spriteBatch;
+    }
+
+    public FitViewport getViewport() {
+        return viewport;
+    }
+
+    public FitViewport getHudViewport() {
+        return hudViewport;
     }
 }
