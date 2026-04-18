@@ -20,8 +20,8 @@ import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.Color;
 import com.natalia.natarunner.ui.FloatingText;
+import com.natalia.natarunner.ui.PauseMenu;
 
 public class TearsLogicManager {
 
@@ -54,6 +54,8 @@ public class TearsLogicManager {
     private Sound gotaAmarillaFallSound;
     private Sound sonidoSable;
     private Sound gotaRojaSound;
+
+    private static final int RED_PROJECTILE_PENALTY = 25;
 
     private TearsRenderManager renderManager;
     public void setRenderManager(TearsRenderManager renderManager) {
@@ -90,6 +92,7 @@ public class TearsLogicManager {
             ctx.font = resources.hudFont;
             ctx.smallFont = resources.hudSmallFont;
 
+            ctx.pauseMenu = new PauseMenu(resources.hudFont, resources, audio);
             ctx.flashMessage = new com.natalia.natarunner.ui.FlashMessage(1.5f);
             ctx.scoreBar = new com.natalia.natarunner.ui.ScoreBar(ctx.scoreBasta, 220f, 20f, 20f);
             ctx.countdownTimer = new com.natalia.natarunner.ui.CountdownTimer(60f, ctx.font);
@@ -134,6 +137,7 @@ public class TearsLogicManager {
         ctx.gotasAmarillas.clear();
         ctx.gotasRojas.clear();
         ctx.floatingTexts.clear();
+        ctx.redProjectiles.clear();
 
         if (ctx.countdownTimer != null) {
             ctx.countdownTimer.reset(60f);
@@ -152,14 +156,88 @@ public class TearsLogicManager {
     }
 
     private void input(float delta) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.M)) {
+            ctx.pauseOnlyMusic = !ctx.pauseOnlyMusic;
+            if (ctx.pauseOnlyMusic) {
+                music.pause();
+            } else {
+                music.play();
+            }
+            return;
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F)) {
+            ctx.freezeMode = !ctx.freezeMode;
+            if (ctx.freezeMode) {
+                audio.pauseMusic();
+            } else {
+                audio.playMusic(music);
+            }
+            return;
+        }
+
+        if (ctx.freezeMode) {
+            return;
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.L)) {
+            ctx.score = ctx.scoreBasta;
+            return;
+        }
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            audio.stopMusic();
-            game.setScreen(new MenuScreen(
-                game,
-                ((NataRunner) game).audioManager,
-                ((NataRunner) game).resources,
-                ((NataRunner) game).settings
-            ));
+
+            if (ctx.state == TearsGameContext.GameState.INTRO) {
+                game.setScreen(new MenuScreen(
+                    game,
+                    ((NataRunner) game).audioManager,
+                    ((NataRunner) game).resources,
+                    ((NataRunner) game).settings
+                ));
+                return;
+            }
+
+            if (ctx.state == TearsGameContext.GameState.PLAYING) {
+                ctx.state = TearsGameContext.GameState.PAUSED;
+                if (music != null) {
+                    music.pause();
+                }
+                return;
+            }
+        }
+
+        if (ctx.state == TearsGameContext.GameState.PAUSED) {
+
+            PauseMenu.PauseOption option =
+                ctx.pauseMenu.input(renderManager.getHudViewport());
+
+            switch (option) {
+                case CONTINUE:
+                    ctx.state = TearsGameContext.GameState.PLAYING;
+                    audio.playMusic(music);
+                    break;
+
+                case EXIT:
+                    game.setScreen(new MenuScreen(
+                        game,
+                        ((NataRunner) game).audioManager,
+                        ((NataRunner) game).resources,
+                        ((NataRunner) game).settings
+                    ));
+                    break;
+
+                case INSTRUCTIONS:
+                default:
+                    break;
+            }
+
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                ctx.state = TearsGameContext.GameState.PLAYING;
+                if (music != null) {
+                    music.play();
+                }
+            }
+
             return;
         }
 
@@ -208,6 +286,10 @@ public class TearsLogicManager {
     }
 
     private void update(float delta) {
+        if (ctx.freezeMode) {
+            return;
+        }
+
         ctx.countdownTimer.update(delta);
         ctx.flashMessage.update(delta);
 
@@ -227,7 +309,7 @@ public class TearsLogicManager {
         updateWhiteDrops(delta);
         updateYellowDrops(delta);
         updateRedDrops(delta);
-
+        updateRedProjectiles(delta);
         updateFloatingTexts(delta);
 
         if (ctx.countdownTimer.isFinished() &&
@@ -413,22 +495,128 @@ public class TearsLogicManager {
     }
 
     private void updateRedDrops(float delta) {
+
+        boolean anyRedDropShooting = false;
+
+        for (int k = 0; k < ctx.gotasRojas.size; k++) {
+            if (ctx.gotasRojas.get(k).isShooting()) {
+                anyRedDropShooting = true;
+                break;
+            }
+        }
+
         for (int i = ctx.gotasRojas.size - 1; i >= 0; i--) {
             RedDrop gota = ctx.gotasRojas.get(i);
 
-            gota.update(delta);
-            gota.chase(ctx.playerTears.getCenterX(), delta);
+            boolean canStartShooting = !anyRedDropShooting || gota.isShooting();
 
-            if (gota.isOutOfScreen()) {
+            gota.update(delta);
+
+            gota.updateShooting(
+                delta,
+                ctx.redProjectiles,
+                resources.gotaBlancaTexture,
+                resources.shootSound,
+                audio,
+                canStartShooting
+            );
+
+            if (!gota.isShooting()) {
+                gota.chase(ctx.playerTears.getCenterX(), delta);
+            }
+
+            gota.updateBounds();
+
+            if (gota.getSprite().getY() < -gota.getSprite().getHeight()) {
                 ctx.gotasRojas.removeIndex(i);
-            } else if (ctx.playerTears.getBounds().overlaps(gota.getReducedBounds())) {
+            }
+            else if (
+                gota.getSprite().getY() < viewport.getWorldHeight() - ctx.hudHeight - 0.35f
+                    && ctx.playerTears.getBounds().overlaps(gota.getReducedBounds())
+            ) {
                 ctx.gotasRojas.removeIndex(i);
+
                 loseHeartOrGameOver(
                     false,
                     false,
-                    "¡ YOU ARE STABBED !",
-                    new Color(1f, 0.4f, 0.1f, 1f)
+                    "¡ TOUCHED by a Red Tear !",
+                    new Color(1f, 0f, 0f, 1f)
                 );
+            }
+        }
+    }
+
+    private void updateRedProjectiles(float delta) {
+
+        float worldWidth = viewport.getWorldWidth();
+        float worldHeight = viewport.getWorldHeight();
+
+        for (int i = ctx.redProjectiles.size - 1; i >= 0; i--) {
+            com.natalia.natarunner.model.entities.projectile.RedDropProjectile p = ctx.redProjectiles.get(i);
+            p.update(delta);
+
+            if (p.isOutOfWorld(worldWidth, worldHeight)) {
+                ctx.redProjectiles.removeIndex(i);
+                continue;
+            }
+
+            if (ctx.playerTears.getBounds().overlaps(p.getBounds())) {
+                float x = p.getX();
+                float y = p.getY();
+
+                ctx.redProjectiles.removeIndex(i);
+                ctx.score -= RED_PROJECTILE_PENALTY;
+                if (ctx.score < 0) ctx.score = 0;
+
+                if (ctx.score <= 0) {
+                    loseHeartOrGameOver(
+                        true,
+                        false,
+                        "¡ SCORE OUT !",
+                        new Color(1f, 0.2f, 0.2f, 1f)
+                    );
+                } else {
+                    if (ctx.flashMessage != null) {
+                        ctx.flashMessage.show(
+                            new Color(1f, 0.3f, 0.3f, 1f),
+                            "-" + RED_PROJECTILE_PENALTY
+                        );
+                    }
+
+                    ctx.floatingTexts.add(new com.natalia.natarunner.ui.FloatingText(
+                        "-" + RED_PROJECTILE_PENALTY,
+                        x,
+                        y,
+                        0.6f,
+                        Color.RED
+                    ));
+                }
+                continue;
+            }
+
+            boolean removedProjectile = false;
+
+            for (int j = ctx.gotasBlancas.size - 1; j >= 0; j--) {
+                WhiteDrop blanca = ctx.gotasBlancas.get(j);
+
+                if (blanca.getBounds().overlaps(p.getBounds())) {
+                    ctx.gotasBlancas.removeIndex(j);
+                    ctx.redProjectiles.removeIndex(i);
+                    removedProjectile = true;
+                    break;
+                }
+            }
+
+            if (removedProjectile) continue;
+
+            for (int j = ctx.gotasAmarillas.size - 1; j >= 0; j--) {
+                YellowDrop amarilla = ctx.gotasAmarillas.get(j);
+
+                if (amarilla.getBounds().overlaps(p.getBounds())) {
+                    ctx.gotasAmarillas.removeIndex(j);
+                    ctx.redProjectiles.removeIndex(i);
+                    break;
+                }
             }
         }
     }

@@ -7,11 +7,10 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.natalia.natarunner.model.entities.drops.RedDrop;
 import com.natalia.natarunner.model.entities.drops.WhiteDrop;
 import com.natalia.natarunner.model.entities.drops.YellowDrop;
+import com.natalia.natarunner.model.entities.projectile.RedDropProjectile;
 import com.natalia.natarunner.screens.context.TearsGameContext;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.math.Vector2;
-import com.natalia.natarunner.ui.FloatingText;
-import com.natalia.natarunner.ui.FlashMessage;
+
 
 public class TearsRenderManager {
 
@@ -40,6 +39,10 @@ public class TearsRenderManager {
         float x = (hudViewport.getWorldWidth() - w) / 2f;
         float y = (hudViewport.getWorldHeight() - h) / 2f;
         ctx.level1Rectangulo.set(x, y, w, h);
+
+        if (ctx.pauseMenu != null) {
+            ctx.pauseMenu.layout(hudViewport.getWorldWidth(), hudViewport.getWorldHeight());
+        }
     }
 
     public void draw() {
@@ -71,6 +74,10 @@ public class TearsRenderManager {
 
             for (RedDrop gota : ctx.gotasRojas) {
                 gota.draw(spriteBatch);
+            }
+
+            for (RedDropProjectile p : ctx.redProjectiles) {
+                p.draw(spriteBatch);
             }
 
             if (ctx.playerTears != null) {
@@ -152,6 +159,14 @@ public class TearsRenderManager {
             ctx.smallFont.setColor(1f, 1f, 1f, 1f);
         }
 
+        if (ctx.state == TearsGameContext.GameState.PAUSED && ctx.pauseMenu != null) {
+            ctx.pauseMenu.draw(
+                spriteBatch,
+                hudViewport.getWorldWidth(),
+                hudViewport.getWorldHeight()
+            );
+        }
+
         renderLevelTitle(spriteBatch);
 
         spriteBatch.end();
@@ -219,6 +234,10 @@ public class TearsRenderManager {
 
         viewport.update(width, height, true);
         hudViewport.update(width, height, true);
+
+        if (ctx.pauseMenu != null) {
+            ctx.pauseMenu.layout(hudViewport.getWorldWidth(), hudViewport.getWorldHeight());
+        }
 
         float w = 300f;
         float h = 300f;
