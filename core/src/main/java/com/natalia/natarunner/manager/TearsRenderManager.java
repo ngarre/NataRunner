@@ -46,11 +46,9 @@ public class TearsRenderManager {
     public void draw() {
         ScreenUtils.clear(Color.BLACK);
 
-        drawWorld();
-        drawHud();
-    }
-
-    private void drawWorld() {
+        // =========================
+        // DIBUJO DEL MUNDO
+        // =========================
         viewport.apply();
         spriteBatch.setProjectionMatrix(viewport.getCamera().combined);
 
@@ -82,9 +80,10 @@ public class TearsRenderManager {
         }
 
         spriteBatch.end();
-    }
 
-    private void drawHud() {
+        // =========================
+        // DIBUJO DEL HUD
+        // =========================
         hudViewport.apply();
         spriteBatch.setProjectionMatrix(hudViewport.getCamera().combined);
 
