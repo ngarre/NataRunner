@@ -353,6 +353,7 @@ public class TearsLogicManager {
                 if (gota.isLethal()) {
                     ctx.hearts--;
                     if (ctx.hearts < 0) ctx.hearts = 0;
+                    audio.playSound(resources.sonidoMortal);
                 } else {
                     audio.playSound(gotaAmarillaSound);
                     ctx.score += YellowDrop.POINTS;
