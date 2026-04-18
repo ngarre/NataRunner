@@ -21,6 +21,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.natalia.natarunner.ui.FloatingText;
+import com.natalia.natarunner.ui.PauseMenu;
 
 public class TearsLogicManager {
 
@@ -91,6 +92,7 @@ public class TearsLogicManager {
             ctx.font = resources.hudFont;
             ctx.smallFont = resources.hudSmallFont;
 
+            ctx.pauseMenu = new PauseMenu(resources.hudFont, resources, audio);
             ctx.flashMessage = new com.natalia.natarunner.ui.FlashMessage(1.5f);
             ctx.scoreBar = new com.natalia.natarunner.ui.ScoreBar(ctx.scoreBasta, 220f, 20f, 20f);
             ctx.countdownTimer = new com.natalia.natarunner.ui.CountdownTimer(60f, ctx.font);
@@ -184,13 +186,58 @@ public class TearsLogicManager {
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            audio.stopMusic();
-            game.setScreen(new MenuScreen(
-                game,
-                ((NataRunner) game).audioManager,
-                ((NataRunner) game).resources,
-                ((NataRunner) game).settings
-            ));
+
+            if (ctx.state == TearsGameContext.GameState.INTRO) {
+                game.setScreen(new MenuScreen(
+                    game,
+                    ((NataRunner) game).audioManager,
+                    ((NataRunner) game).resources,
+                    ((NataRunner) game).settings
+                ));
+                return;
+            }
+
+            if (ctx.state == TearsGameContext.GameState.PLAYING) {
+                ctx.state = TearsGameContext.GameState.PAUSED;
+                if (music != null) {
+                    music.pause();
+                }
+                return;
+            }
+        }
+
+        if (ctx.state == TearsGameContext.GameState.PAUSED) {
+
+            PauseMenu.PauseOption option =
+                ctx.pauseMenu.input(renderManager.getHudViewport());
+
+            switch (option) {
+                case CONTINUE:
+                    ctx.state = TearsGameContext.GameState.PLAYING;
+                    audio.playMusic(music);
+                    break;
+
+                case EXIT:
+                    game.setScreen(new MenuScreen(
+                        game,
+                        ((NataRunner) game).audioManager,
+                        ((NataRunner) game).resources,
+                        ((NataRunner) game).settings
+                    ));
+                    break;
+
+                case INSTRUCTIONS:
+                default:
+                    break;
+            }
+
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                ctx.state = TearsGameContext.GameState.PLAYING;
+                if (music != null) {
+                    music.play();
+                }
+            }
+
             return;
         }
 

@@ -39,6 +39,10 @@ public class TearsRenderManager {
         float x = (hudViewport.getWorldWidth() - w) / 2f;
         float y = (hudViewport.getWorldHeight() - h) / 2f;
         ctx.level1Rectangulo.set(x, y, w, h);
+
+        if (ctx.pauseMenu != null) {
+            ctx.pauseMenu.layout(hudViewport.getWorldWidth(), hudViewport.getWorldHeight());
+        }
     }
 
     public void draw() {
@@ -155,6 +159,14 @@ public class TearsRenderManager {
             ctx.smallFont.setColor(1f, 1f, 1f, 1f);
         }
 
+        if (ctx.state == TearsGameContext.GameState.PAUSED && ctx.pauseMenu != null) {
+            ctx.pauseMenu.draw(
+                spriteBatch,
+                hudViewport.getWorldWidth(),
+                hudViewport.getWorldHeight()
+            );
+        }
+
         renderLevelTitle(spriteBatch);
 
         spriteBatch.end();
@@ -222,6 +234,10 @@ public class TearsRenderManager {
 
         viewport.update(width, height, true);
         hudViewport.update(width, height, true);
+
+        if (ctx.pauseMenu != null) {
+            ctx.pauseMenu.layout(hudViewport.getWorldWidth(), hudViewport.getWorldHeight());
+        }
 
         float w = 300f;
         float h = 300f;

@@ -13,6 +13,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.natalia.natarunner.model.entities.projectile.RedDropProjectile;
+import com.natalia.natarunner.ui.PauseMenu;
+
 
 public class TearsGameContext {
 
@@ -55,6 +57,7 @@ public class TearsGameContext {
     public FlashMessage flashMessage;
     public ScoreBar scoreBar;
     public CountdownTimer countdownTimer;
+    public PauseMenu pauseMenu;
 
     public Rectangle level1Rectangulo = new Rectangle();
 
