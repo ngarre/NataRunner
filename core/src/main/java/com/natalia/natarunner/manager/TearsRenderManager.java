@@ -109,14 +109,7 @@ public class TearsRenderManager {
         );
         spriteBatch.setColor(1f, 1f, 1f, 1f);
 
-        ctx.font.draw(spriteBatch, "SCORE: " + ctx.score, 15, 745);
-
-        renderHearts(screenHeight);
-
-        if (ctx.countdownTimer != null) {
-            ctx.countdownTimer.draw(spriteBatch, 610f, 745f);
-        }
-
+        // SCORE BAR
         if (ctx.scoreBar != null) {
             ctx.scoreBar.draw(
                 spriteBatch,
@@ -127,8 +120,19 @@ public class TearsRenderManager {
             );
         }
 
-        float flashHeight = 40f;
+        // SCORE
+        ctx.font.draw(spriteBatch, "SCORE: " + ctx.score, 15, 745);
 
+        // HEARTS
+        renderHearts(screenHeight);
+
+        // TIMER
+        if (ctx.countdownTimer != null) {
+            ctx.countdownTimer.draw(spriteBatch, 610f, 745f);
+        }
+
+        // FLASH MESSAGE
+        float flashHeight = 40f;
         if (ctx.flashMessage != null && ctx.smallFont != null) {
             ctx.flashMessage.draw(
                 spriteBatch,
@@ -139,13 +143,16 @@ public class TearsRenderManager {
             );
         }
 
+        // GAME OVER
         if (ctx.state == TearsGameContext.GameState.GAMEOVER) {
             sacarGameOver(screenWidth, screenHeight);
         }
 
+        // FLOATING TEXTS
         if (ctx.smallFont != null) {
             for (com.natalia.natarunner.ui.FloatingText ft : ctx.floatingTexts) {
-                com.badlogic.gdx.math.Vector2 screenPos = new com.badlogic.gdx.math.Vector2(ft.pos.x, ft.pos.y);
+                com.badlogic.gdx.math.Vector2 screenPos =
+                    new com.badlogic.gdx.math.Vector2(ft.pos.x, ft.pos.y);
                 viewport.project(screenPos);
 
                 ctx.smallFont.setColor(ft.color.r, ft.color.g, ft.color.b, ft.alpha);
@@ -155,6 +162,7 @@ public class TearsRenderManager {
             ctx.smallFont.setColor(1f, 1f, 1f, 1f);
         }
 
+        // PAUSE MENU
         if (ctx.state == TearsGameContext.GameState.PAUSED && ctx.pauseMenu != null) {
             ctx.pauseMenu.draw(
                 spriteBatch,
@@ -163,6 +171,7 @@ public class TearsRenderManager {
             );
         }
 
+        // LEVEL TITLE
         renderLevelTitle(spriteBatch);
 
         spriteBatch.end();
