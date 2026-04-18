@@ -61,26 +61,24 @@ public class TearsRenderManager {
 
         spriteBatch.draw(resources.fondoTears, 0, 0, worldWidth, worldHeight);
 
-        if (ctx.state == TearsGameContext.GameState.PLAYING) {
-            for (WhiteDrop gota : ctx.gotasBlancas) {
-                gota.draw(spriteBatch);
-            }
+        if (ctx.playerTears != null) {
+            ctx.playerTears.draw(spriteBatch);
+        }
 
-            for (YellowDrop gota : ctx.gotasAmarillas) {
-                gota.draw(spriteBatch);
-            }
+        for (WhiteDrop gota : ctx.gotasBlancas) {
+            gota.draw(spriteBatch);
+        }
 
-            for (RedDrop gota : ctx.gotasRojas) {
-                gota.draw(spriteBatch);
-            }
+        for (YellowDrop gota : ctx.gotasAmarillas) {
+            gota.draw(spriteBatch);
+        }
 
-            for (RedDropProjectile p : ctx.redProjectiles) {
-                p.draw(spriteBatch);
-            }
+        for (RedDrop gota : ctx.gotasRojas) {
+            gota.draw(spriteBatch);
+        }
 
-            if (ctx.playerTears != null) {
-                ctx.playerTears.draw(spriteBatch);
-            }
+        for (RedDropProjectile p : ctx.redProjectiles) {
+            p.draw(spriteBatch);
         }
 
         spriteBatch.end();
