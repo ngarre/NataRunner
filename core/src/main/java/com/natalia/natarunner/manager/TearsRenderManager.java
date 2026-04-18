@@ -7,11 +7,10 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.natalia.natarunner.model.entities.drops.RedDrop;
 import com.natalia.natarunner.model.entities.drops.WhiteDrop;
 import com.natalia.natarunner.model.entities.drops.YellowDrop;
+import com.natalia.natarunner.model.entities.projectile.RedDropProjectile;
 import com.natalia.natarunner.screens.context.TearsGameContext;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.math.Vector2;
-import com.natalia.natarunner.ui.FloatingText;
-import com.natalia.natarunner.ui.FlashMessage;
+
 
 public class TearsRenderManager {
 
@@ -71,6 +70,10 @@ public class TearsRenderManager {
 
             for (RedDrop gota : ctx.gotasRojas) {
                 gota.draw(spriteBatch);
+            }
+
+            for (RedDropProjectile p : ctx.redProjectiles) {
+                p.draw(spriteBatch);
             }
 
             if (ctx.playerTears != null) {

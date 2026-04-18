@@ -12,6 +12,7 @@ import com.natalia.natarunner.ui.ScoreBar;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
+import com.natalia.natarunner.model.entities.projectile.RedDropProjectile;
 
 public class TearsGameContext {
 
@@ -49,6 +50,7 @@ public class TearsGameContext {
     public Array<YellowDrop> gotasAmarillas = new Array<>();
     public Array<RedDrop> gotasRojas = new Array<>();
     public Array<FloatingText> floatingTexts = new Array<>();
+    public Array<RedDropProjectile> redProjectiles = new Array<>();
 
     public FlashMessage flashMessage;
     public ScoreBar scoreBar;
