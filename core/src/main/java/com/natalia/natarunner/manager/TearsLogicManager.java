@@ -22,6 +22,9 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.natalia.natarunner.ui.FloatingText;
 import com.natalia.natarunner.ui.PauseMenu;
+import com.badlogic.gdx.utils.Align;
+import com.natalia.natarunner.config.InstructionsConfig;
+import com.natalia.natarunner.screens.InstructionsScreen;
 
 public class TearsLogicManager {
 
@@ -227,6 +230,16 @@ public class TearsLogicManager {
                     break;
 
                 case INSTRUCTIONS:
+                    game.setScreen(new InstructionsScreen(
+                        game,
+                        ownerScreen,
+                        InstructionsConfig.TEARS.imagePath,
+                        InstructionsConfig.TEARS.text,
+                        Align.left,
+                        resources
+                    ));
+                    break;
+
                 default:
                     break;
             }
