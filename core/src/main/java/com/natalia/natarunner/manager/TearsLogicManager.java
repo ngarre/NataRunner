@@ -152,6 +152,30 @@ public class TearsLogicManager {
     }
 
     private void input(float delta) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.M)) {
+            ctx.pauseOnlyMusic = !ctx.pauseOnlyMusic;
+            if (ctx.pauseOnlyMusic) {
+                music.pause();
+            } else {
+                music.play();
+            }
+            return;
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F)) {
+            ctx.freezeMode = !ctx.freezeMode;
+            if (ctx.freezeMode) {
+                audio.pauseMusic();
+            } else {
+                audio.playMusic(music);
+            }
+            return;
+        }
+
+        if (ctx.freezeMode) {
+            return;
+        }
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             audio.stopMusic();
             game.setScreen(new MenuScreen(
@@ -208,6 +232,10 @@ public class TearsLogicManager {
     }
 
     private void update(float delta) {
+        if (ctx.freezeMode) {
+            return;
+        }
+
         ctx.countdownTimer.update(delta);
         ctx.flashMessage.update(delta);
 
