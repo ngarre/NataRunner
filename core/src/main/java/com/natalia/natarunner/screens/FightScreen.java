@@ -58,6 +58,10 @@ public class FightScreen implements Screen {
         this.game = game;
     }
 
+    public FightScreen(Game game, AudioManager audio, ResourceManager resources, GameSettings settings) {
+        this(game);
+    }
+
     @Override
     public void show() {
         NataRunner nataRunner = (NataRunner) game;

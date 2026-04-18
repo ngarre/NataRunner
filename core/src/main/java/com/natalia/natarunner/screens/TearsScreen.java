@@ -1,47 +1,49 @@
 package com.natalia.natarunner.screens;
 
-import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.natalia.natarunner.config.GameConfig;
 import com.natalia.natarunner.manager.AudioManager;
 import com.natalia.natarunner.manager.GameSettings;
 import com.natalia.natarunner.manager.ResourceManager;
 import com.natalia.natarunner.manager.TearsLogicManager;
 import com.natalia.natarunner.manager.TearsRenderManager;
 import com.natalia.natarunner.screens.context.TearsGameContext;
+import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Screen;
 
 public class TearsScreen implements Screen {
 
+    private final Game game;
+    private final AudioManager audio;
     private final ResourceManager resources;
-    private final TearsRenderManager renderManager;
-    private final TearsLogicManager logicManager;
+    private final GameSettings settings;
+
     private final TearsGameContext ctx;
+    private final TearsLogicManager logicManager;
+    private final TearsRenderManager renderManager;
 
     public TearsScreen(Game game, AudioManager audio, ResourceManager resources, GameSettings settings) {
-        this.ctx = new TearsGameContext();
-
-        FitViewport viewport = new FitViewport(GameConfig.mundoAnchoTears, GameConfig.mundoAltoTears);
-        FitViewport hudViewport = new FitViewport(1228, 768);
-
+        this.game = game;
+        this.audio = audio;
         this.resources = resources;
-        this.renderManager = new TearsRenderManager(resources, ctx, viewport, hudViewport);
-        this.logicManager = new TearsLogicManager(game, audio, resources, settings, ctx, viewport, hudViewport);
-        this.logicManager.setRenderManager(this.renderManager);
+        this.settings = settings;
+
+        this.ctx = new TearsGameContext();
+        this.renderManager = new TearsRenderManager(resources, ctx);
+        this.logicManager = new TearsLogicManager(game, audio, resources, settings, ctx);
+
+        this.logicManager.setRenderManager(renderManager);
         this.logicManager.setOwnerScreen(this);
     }
 
     @Override
     public void show() {
-        ctx.font = resources.hudFont;
-        ctx.smallFont = resources.hudSmallFont;
-        renderManager.show();
-        logicManager.show();
+        logicManager.show();   //   <---- Inicializa el estado del juego (entidades, lógica, timers, audio)
+        renderManager.show();  //   <---- Inicializa elementos de render (SpriteBatch, viewports, layout HUD)
     }
 
     @Override
     public void render(float delta) {
-        logicManager.render(delta);
+        logicManager.input();
+        logicManager.update(delta);
         renderManager.draw();
     }
 
@@ -50,12 +52,16 @@ public class TearsScreen implements Screen {
         renderManager.resize(width, height);
     }
 
-    @Override public void pause() { }
-    @Override public void resume() { }
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
 
     @Override
     public void hide() {
-        logicManager.hide();
     }
 
     @Override
