@@ -20,6 +20,7 @@ import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Color;
 
 public class TearsLogicManager {
 
@@ -163,6 +164,18 @@ public class TearsLogicManager {
 
         if (ctx.state == TearsGameContext.GameState.INTRO) {
             boolean startGame = false;
+
+            if (ctx.state == TearsGameContext.GameState.GAMEOVER) {
+                if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+                    game.setScreen(new MenuScreen(
+                        game,
+                        ((NataRunner) game).audioManager,
+                        ((NataRunner) game).resources,
+                        ((NataRunner) game).settings
+                    ));
+                }
+                return;
+            }
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
                 startGame = true;
@@ -351,9 +364,10 @@ public class TearsLogicManager {
                 ctx.gotasAmarillas.removeIndex(i);
 
                 if (gota.isLethal()) {
-                    ctx.hearts--;
-                    if (ctx.hearts < 0) ctx.hearts = 0;
-                    audio.playSound(resources.sonidoMortal);
+                    loseHeartOrGameOver(
+                        "¡ YOU ARE STABBED !",
+                        new Color(1f, 0.4f, 0.1f, 1f)
+                    );
                 } else {
                     audio.playSound(gotaAmarillaSound);
                     ctx.score += YellowDrop.POINTS;
@@ -381,14 +395,46 @@ public class TearsLogicManager {
                 ctx.gotasRojas.removeIndex(i);
             } else if (ctx.playerTears.getBounds().overlaps(gota.getReducedBounds())) {
                 ctx.gotasRojas.removeIndex(i);
-                ctx.hearts--;
-                if (ctx.hearts < 0) ctx.hearts = 0;
-                audio.playSound(resources.sonidoMortal);
+                loseHeartOrGameOver(
+                    "¡ TOUCHED by a Red Tear !",
+                    new Color(1f, 0f, 0f, 1f)
+                );
             }
         }
     }
 
     public void hide() {
         audio.stopMusic();
+    }
+
+    private void triggerGameOver(String message, Color color) {
+        if (ctx.state == TearsGameContext.GameState.GAMEOVER) return;
+
+        if (ctx.flashMessage != null) {
+            ctx.flashMessage.show(color, message);
+        }
+
+        ctx.state = TearsGameContext.GameState.GAMEOVER;
+
+        if (music != null) {
+            music.pause();
+        }
+    }
+
+    private void loseHeartOrGameOver(String message, Color color) {
+        if (ctx.state == TearsGameContext.GameState.GAMEOVER) return;
+
+        if (ctx.hearts <= 1) {
+            audio.playSound(resources.sonidoMortal);
+            triggerGameOver(message, color);
+            return;
+        }
+
+        ctx.hearts--;
+        audio.playSound(resources.sonidoMortal);
+
+        if (ctx.flashMessage != null) {
+            ctx.flashMessage.show(color, message);
+        }
     }
 }
