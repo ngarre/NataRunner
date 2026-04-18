@@ -1,25 +1,27 @@
 package com.natalia.natarunner.manager;
 
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.natalia.natarunner.model.entities.drops.RedDrop;
 import com.natalia.natarunner.model.entities.drops.WhiteDrop;
 import com.natalia.natarunner.model.entities.drops.YellowDrop;
-import com.natalia.natarunner.model.entities.projectile.RedDropProjectile;
-import com.natalia.natarunner.screens.context.TearsGameContext;
+import com.natalia.natarunner.ui.FloatingText;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Align;
-
+import com.badlogic.gdx.utils.ScreenUtils;
+import com.natalia.natarunner.manager.ResourceManager;
+import com.natalia.natarunner.screens.context.TearsGameContext;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.natalia.natarunner.model.entities.projectile.RedDropProjectile;
 
 public class TearsRenderManager {
 
     private final ResourceManager resources;
     private final TearsGameContext ctx;
-    private FitViewport viewport;
-    private FitViewport hudViewport;
 
     private SpriteBatch spriteBatch;
+    private FitViewport viewport;
+    private FitViewport hudViewport;
 
     public TearsRenderManager(ResourceManager resources, TearsGameContext ctx) {
         this.resources = resources;
@@ -29,19 +31,25 @@ public class TearsRenderManager {
     public void show() {
         spriteBatch = new SpriteBatch();
 
+        // Mundo del juego
         viewport = new FitViewport(12.28f, 7.68f);
+
+        // HUD en píxeles lógicos
         hudViewport = new FitViewport(1228, 768);
 
+        // Rectángulo del cartel LEVEL 1
         float w = 300f;
         float h = 300f;
         float x = (hudViewport.getWorldWidth() - w) / 2f;
         float y = (hudViewport.getWorldHeight() - h) / 2f;
         ctx.level1Rectangulo.set(x, y, w, h);
 
+        // Si el PauseMenu ya existe, le damos layout aquí
         if (ctx.pauseMenu != null) {
             ctx.pauseMenu.layout(hudViewport.getWorldWidth(), hudViewport.getWorldHeight());
         }
     }
+
 
     public void draw() {
         ScreenUtils.clear(Color.BLACK);
@@ -92,6 +100,7 @@ public class TearsRenderManager {
         float screenWidth = hudViewport.getWorldWidth();
         float screenHeight = hudViewport.getWorldHeight();
 
+        // INTRO
         if (ctx.state == TearsGameContext.GameState.INTRO) {
             sacarLevel1(screenWidth, screenHeight);
             spriteBatch.end();
@@ -109,29 +118,39 @@ public class TearsRenderManager {
         spriteBatch.setColor(1f, 1f, 1f, 1f);
 
         // SCORE BAR
+        float yBar = screenHeight - ctx.barHeight + (ctx.barHeight - 20f) / 2f;
+
         if (ctx.scoreBar != null) {
             ctx.scoreBar.draw(
                 spriteBatch,
                 resources.hudBackground,
                 ctx.score,
                 screenWidth,
-                727f
+                yBar
             );
         }
 
-        // SCORE
-        ctx.font.draw(spriteBatch, "SCORE: " + ctx.score, 15, 745);
+        if (ctx.font != null) {
+            ctx.font.draw(
+                spriteBatch,
+                "SCORE: " + ctx.score,
+                20,
+                screenHeight - 20
+            );
+        }
 
-        // HEARTS
         renderHearts(screenHeight);
 
         // TIMER
         if (ctx.countdownTimer != null) {
-            ctx.countdownTimer.draw(spriteBatch, 610f, 745f);
+            float middleX = hudViewport.getWorldWidth() / 2f - 60f;
+            float yPos = hudViewport.getWorldHeight() - 20f;
+            ctx.countdownTimer.draw(spriteBatch, middleX, yPos);
         }
 
         // FLASH MESSAGE
         float flashHeight = 40f;
+
         if (ctx.flashMessage != null && ctx.smallFont != null) {
             ctx.flashMessage.draw(
                 spriteBatch,
@@ -147,11 +166,10 @@ public class TearsRenderManager {
             sacarGameOver(screenWidth, screenHeight);
         }
 
-        // FLOATING TEXTS
+        // TEXTOS FLOTANTES
         if (ctx.smallFont != null) {
-            for (com.natalia.natarunner.ui.FloatingText ft : ctx.floatingTexts) {
-                com.badlogic.gdx.math.Vector2 screenPos =
-                    new com.badlogic.gdx.math.Vector2(ft.pos.x, ft.pos.y);
+            for (FloatingText ft : ctx.floatingTexts) {
+                Vector2 screenPos = new Vector2(ft.pos.x, ft.pos.y);
                 viewport.project(screenPos);
 
                 ctx.smallFont.setColor(ft.color.r, ft.color.g, ft.color.b, ft.alpha);
@@ -161,7 +179,7 @@ public class TearsRenderManager {
             ctx.smallFont.setColor(1f, 1f, 1f, 1f);
         }
 
-        // PAUSE MENU
+        // PAUSA
         if (ctx.state == TearsGameContext.GameState.PAUSED && ctx.pauseMenu != null) {
             ctx.pauseMenu.draw(
                 spriteBatch,
@@ -170,7 +188,7 @@ public class TearsRenderManager {
             );
         }
 
-        // LEVEL TITLE
+        // Llamo a pintar el nombre del nivel
         renderLevelTitle(spriteBatch);
 
         spriteBatch.end();
@@ -185,7 +203,9 @@ public class TearsRenderManager {
         spriteBatch.draw(resources.gameOver, x, y, imgWidth, imgHeight);
     }
 
+    // Saca el cartel png de que vamos a entrar a level 1
     private void sacarLevel1(float w, float h) {
+
         spriteBatch.setColor(0f, 0f, 0f, 0.75f);
         spriteBatch.draw(resources.hudBackground, 0, 0, w, h);
         spriteBatch.setColor(1f, 1f, 1f, 1f);
@@ -199,7 +219,9 @@ public class TearsRenderManager {
         );
     }
 
+    // Esto saca el título del nivel abajo.
     private void renderLevelTitle(SpriteBatch spriteBatch) {
+
         float marginRight = 20f;
         float marginBottom = 20f;
 
@@ -208,7 +230,7 @@ public class TearsRenderManager {
 
         resources.fontMenu.draw(
             spriteBatch,
-            ctx.level1Title,
+            ctx.level1Title,    // <--- Está en TearsGameContext
             x,
             y,
             0,
@@ -217,6 +239,7 @@ public class TearsRenderManager {
         );
     }
 
+    // Pinta los corazones de vida
     private void renderHearts(float screenHeight) {
         if (resources.minicorazon == null) return;
 
@@ -224,6 +247,7 @@ public class TearsRenderManager {
         float heartHeight = 28f;
         float spacing = 8f;
 
+        // A continuación del SCORE
         float startX = 280f;
         float y = screenHeight - 50f;
 
@@ -233,21 +257,12 @@ public class TearsRenderManager {
         }
     }
 
+
     public void resize(int width, int height) {
         if (width <= 0 || height <= 0) return;
 
         viewport.update(width, height, true);
         hudViewport.update(width, height, true);
-
-        if (ctx.pauseMenu != null) {
-            ctx.pauseMenu.layout(hudViewport.getWorldWidth(), hudViewport.getWorldHeight());
-        }
-
-        float w = 300f;
-        float h = 300f;
-        float x = (hudViewport.getWorldWidth() - w) / 2f;
-        float y = (hudViewport.getWorldHeight() - h) / 2f;
-        ctx.level1Rectangulo.set(x, y, w, h);
     }
 
     public void dispose() {

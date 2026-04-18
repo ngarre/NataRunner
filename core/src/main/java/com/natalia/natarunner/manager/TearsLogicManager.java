@@ -1,30 +1,26 @@
 package com.natalia.natarunner.manager;
 
+import com.natalia.natarunner.screens.context.TearsGameContext;
+import com.natalia.natarunner.ui.CountdownTimer;
+import com.natalia.natarunner.ui.FlashMessage;
+import com.natalia.natarunner.ui.PauseMenu;
+import com.natalia.natarunner.ui.ScoreBar;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.audio.Music;
 import com.natalia.natarunner.NataRunner;
-import com.natalia.natarunner.config.GameConfig;
 import com.natalia.natarunner.model.entities.drops.RedDrop;
 import com.natalia.natarunner.model.entities.drops.WhiteDrop;
 import com.natalia.natarunner.model.entities.drops.YellowDrop;
-import com.natalia.natarunner.model.entities.player.PlayerTears;
 import com.natalia.natarunner.screens.FightScreen;
-import com.natalia.natarunner.screens.MenuScreen;
-import com.natalia.natarunner.screens.context.TearsGameContext;
-import com.badlogic.gdx.Game;
-import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.graphics.Texture;
 import com.natalia.natarunner.ui.FloatingText;
-import com.natalia.natarunner.ui.PauseMenu;
-import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.MathUtils;
+import com.natalia.natarunner.model.entities.projectile.RedDropProjectile;
+import com.natalia.natarunner.config.GameConfig;
 import com.natalia.natarunner.config.InstructionsConfig;
-import com.natalia.natarunner.screens.InstructionsScreen;
 
 public class TearsLogicManager {
 
@@ -33,12 +29,10 @@ public class TearsLogicManager {
     private final ResourceManager resources;
     private final GameSettings settings;
     private final TearsGameContext ctx;
-    private final Vector2 mouseHud = new Vector2();
-
     private Music music;
 
-    private Screen ownerScreen;
-    public void setOwnerScreen(Screen ownerScreen) {
+    private com.badlogic.gdx.Screen ownerScreen;
+    public void setOwnerScreen(com.badlogic.gdx.Screen ownerScreen) {
         this.ownerScreen = ownerScreen;
     }
 
@@ -55,21 +49,20 @@ public class TearsLogicManager {
     private Sound gotaAmarillaFallSound;
     private Sound sonidoSable;
     private Sound gotaRojaSound;
-
     private static final int RED_PROJECTILE_PENALTY = 25;
+
+
 
     private TearsRenderManager renderManager;
     public void setRenderManager(TearsRenderManager renderManager) {
         this.renderManager = renderManager;
     }
 
-    public TearsLogicManager(
-        Game game,
-        AudioManager audio,
-        ResourceManager resources,
-        GameSettings settings,
-        TearsGameContext ctx
-    ) {
+    public TearsLogicManager(Game game,
+                             AudioManager audio,
+                             ResourceManager resources,
+                             GameSettings settings,
+                             TearsGameContext ctx) {
         this.game = game;
         this.audio = audio;
         this.resources = resources;
@@ -82,28 +75,30 @@ public class TearsLogicManager {
 
         if (!ctx.initialized) {
 
-            ctx.scoreBasta = settings.isEasyMode()
-                ? GameConfig.puntosSiFacil
-                : GameConfig.puntosSiDificil;
+            // Ajuste de dificultad
+            ctx.scoreBasta = settings.isEasyMode() ? GameConfig.puntosSiFacil : GameConfig.puntosSiDificil;
 
             ctx.font = resources.hudFont;
             ctx.smallFont = resources.hudSmallFont;
 
             ctx.pauseMenu = new PauseMenu(resources.hudFont, resources, audio);
-            ctx.flashMessage = new com.natalia.natarunner.ui.FlashMessage(1.5f);
-            ctx.scoreBar = new com.natalia.natarunner.ui.ScoreBar(ctx.scoreBasta, 220f, 20f, 20f);
-            ctx.countdownTimer = new com.natalia.natarunner.ui.CountdownTimer(60f, ctx.font);
+            ctx.flashMessage = new FlashMessage(GameConfig.duracionFlashMensaje);
+            ctx.scoreBar = new ScoreBar(ctx.scoreBasta, 220f, 20f, 20f);
+            ctx.countdownTimer = new CountdownTimer(60f, ctx.font);
 
+            // Música del nivel
             music = resources.tearsMusic;
             music.setLooping(true);
             audio.stopMusic();
 
-            ctx.playerTears = new PlayerTears(
+            // Player
+            ctx.playerTears = new com.natalia.natarunner.model.entities.player.PlayerTears(
                 resources.manosTexture,
                 resources.manosCerradasTexture,
                 12.28f / 2f - 0.5f,
                 0.2f
             );
+
 
             gotaBlanca1 = resources.gotaBlanca1;
             gotaBlanca2 = resources.gotaBlanca2;
@@ -121,47 +116,28 @@ public class TearsLogicManager {
 
             ctx.initialized = true;
         }
-
-        ctx.score = 100;
-        ctx.hearts = GameConfig.cuantosCorazones;
-        ctx.gotaBlancaTimer = 0f;
-        ctx.gotaAmarillaTimer = 0f;
-        ctx.gotaRojaTimer = 0f;
-        ctx.tiempoTotal = 0f;
-        ctx.state = TearsGameContext.GameState.INTRO;
-
-        ctx.gotasBlancas.clear();
-        ctx.gotasAmarillas.clear();
-        ctx.gotasRojas.clear();
-        ctx.floatingTexts.clear();
-        ctx.redProjectiles.clear();
-
-        if (ctx.countdownTimer != null) {
-            ctx.countdownTimer.reset(60f);
-        }
-
-        ((NataRunner) game).session.reset();
-        ((NataRunner) game).session.setTearsScore(ctx.score);
     }
 
+
     public void input() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.M)) {
+
+        // Atajo para pausar solo música. para durante la presentación poder mostrar bien a Santi
+        // los sonidos de las animaciones
+        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.M)) {
             ctx.pauseOnlyMusic = !ctx.pauseOnlyMusic;
-            if (ctx.pauseOnlyMusic) {
-                music.pause();
-            } else {
-                music.play();
-            }
+            if (ctx.pauseOnlyMusic) music.pause(); else music.play();
             return;
         }
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.F)) {
+        // Atajo para saltar al siguiente nivel
+        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.L)) {
+            ctx.score = ctx.scoreBasta;
+            return;
+        }
+
+        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.F)) {
             ctx.freezeMode = !ctx.freezeMode;
-            if (ctx.freezeMode) {
-                audio.pauseMusic();
-            } else {
-                audio.playMusic(music);
-            }
+            if (ctx.freezeMode) audio.pauseMusic(); else audio.playMusic(music);
             return;
         }
 
@@ -169,20 +145,16 @@ public class TearsLogicManager {
             return;
         }
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.L)) {
-            ctx.score = ctx.scoreBasta;
-            return;
-        }
+        com.badlogic.gdx.math.Vector2 mouseHud =
+            new com.badlogic.gdx.math.Vector2(Gdx.input.getX(), Gdx.input.getY());
+        com.badlogic.gdx.math.Vector2 mouseWorld =
+            new com.badlogic.gdx.math.Vector2(Gdx.input.getX(), Gdx.input.getY());
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+        // ESCAPE
+        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.ESCAPE)) {
 
             if (ctx.state == TearsGameContext.GameState.INTRO) {
-                game.setScreen(new MenuScreen(
-                    game,
-                    ((NataRunner) game).audioManager,
-                    ((NataRunner) game).resources,
-                    ((NataRunner) game).settings
-                ));
+                game.setScreen(new com.natalia.natarunner.screens.MenuScreen(game, audio, resources, settings));
                 return;
             }
 
@@ -195,74 +167,18 @@ public class TearsLogicManager {
             }
         }
 
-        if (ctx.state == TearsGameContext.GameState.GAMEOVER) {
-            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-                game.setScreen(new MenuScreen(
-                    game,
-                    ((NataRunner) game).audioManager,
-                    ((NataRunner) game).resources,
-                    ((NataRunner) game).settings
-                ));
-            }
-            return;
-        }
-
-        if (ctx.state == TearsGameContext.GameState.PAUSED) {
-
-            PauseMenu.PauseOption option =
-                ctx.pauseMenu.input(renderManager.getHudViewport());
-
-            switch (option) {
-                case CONTINUE:
-                    ctx.state = TearsGameContext.GameState.PLAYING;
-                    audio.playMusic(music);
-                    break;
-
-                case EXIT:
-                    game.setScreen(new MenuScreen(
-                        game,
-                        ((NataRunner) game).audioManager,
-                        ((NataRunner) game).resources,
-                        ((NataRunner) game).settings
-                    ));
-                    break;
-
-                case INSTRUCTIONS:
-                    game.setScreen(new InstructionsScreen(
-                        game,
-                        ownerScreen,
-                        InstructionsConfig.TEARS.imagePath,
-                        InstructionsConfig.TEARS.text,
-                        Align.left,
-                        resources
-                    ));
-                    break;
-
-                default:
-                    break;
-            }
-
-            if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-                ctx.state = TearsGameContext.GameState.PLAYING;
-                if (music != null) {
-                    music.play();
-                }
-            }
-
-            return;
-        }
-
+        // INTRO
         if (ctx.state == TearsGameContext.GameState.INTRO) {
+
             boolean startGame = false;
 
-            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+            if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.ENTER)) {
                 startGame = true;
             }
 
-            mouseHud.set(Gdx.input.getX(), Gdx.input.getY());
             renderManager.getHudViewport().unproject(mouseHud);
 
-            if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)
+            if (Gdx.input.isButtonJustPressed(com.badlogic.gdx.Input.Buttons.LEFT)
                 && ctx.level1Rectangulo.contains(mouseHud)) {
                 startGame = true;
             }
@@ -275,12 +191,62 @@ public class TearsLogicManager {
             return;
         }
 
+        // GAME OVER
+        if (ctx.state == TearsGameContext.GameState.GAMEOVER) {
+            if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.ENTER)) {
+                game.setScreen(new com.natalia.natarunner.screens.MenuScreen(game, audio, resources, settings));
+            }
+            return;
+        }
+
+        // PAUSA
+        if (ctx.state == TearsGameContext.GameState.PAUSED) {
+
+            com.natalia.natarunner.ui.PauseMenu.PauseOption option =
+                ctx.pauseMenu.input(renderManager.getHudViewport());
+
+            switch (option) {
+                case CONTINUE:
+                    ctx.state = TearsGameContext.GameState.PLAYING;
+                    audio.playMusic(music);
+                    break;
+
+                case INSTRUCTIONS:
+
+                    game.setScreen(new com.natalia.natarunner.screens.InstructionsScreen(
+                        game,
+                        ownerScreen,
+                        InstructionsConfig.TEARS.imagePath,
+                        InstructionsConfig.TEARS.text,
+                        com.badlogic.gdx.utils.Align.left,
+                        resources
+                    ));
+                    break;
+
+                case EXIT:
+                    game.setScreen(new com.natalia.natarunner.screens.MenuScreen(game, audio, resources, settings));
+                    break;
+
+                default:
+                    break;
+            }
+
+            if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.ESCAPE)) {
+                ctx.state = TearsGameContext.GameState.PLAYING;
+                if (music != null) {
+                    music.play();
+                }
+            }
+
+            return;
+        }
+
+        // PLAYING
         if (ctx.state == TearsGameContext.GameState.PLAYING) {
+
             if (settings.isMouseEnabled()) {
 
-                Vector2 mouseWorld = new Vector2(Gdx.input.getX(), Gdx.input.getY());
-
-                if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+                if (Gdx.input.isButtonJustPressed(com.badlogic.gdx.Input.Buttons.LEFT)) {
                     renderManager.getViewport().unproject(mouseWorld);
                     ctx.playerTears.updateBounds();
 
@@ -289,7 +255,7 @@ public class TearsLogicManager {
                     }
                 }
 
-                if (!Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+                if (!Gdx.input.isButtonPressed(com.badlogic.gdx.Input.Buttons.LEFT)) {
                     ctx.dragging = false;
                 }
 
@@ -300,12 +266,6 @@ public class TearsLogicManager {
                 }
             }
         }
-
-        if (settings.isMouseEnabled() && Gdx.input.isTouched()) {
-            Vector2 mouseWorld = new Vector2(Gdx.input.getX(), Gdx.input.getY());
-            renderManager.getViewport().unproject(mouseWorld);
-            ctx.playerTears.handleMouseDrag(mouseWorld);
-        }
     }
 
     public void update(float delta) {
@@ -315,6 +275,7 @@ public class TearsLogicManager {
     }
 
     private void logic(float delta) {
+
         ctx.tiempoTotal += delta;
 
         playerLogic(delta);
@@ -326,6 +287,7 @@ public class TearsLogicManager {
         updateFloatingTexts(delta);
 
         ctx.flashMessage.update(delta);
+
         ctx.countdownTimer.update(delta);
 
         if (ctx.countdownTimer.isFinished() &&
@@ -351,97 +313,85 @@ public class TearsLogicManager {
             ctx.hudHeight
         );
     }
+    private void crearGotaBlanca() {
+        float x = MathUtils.random(0f, renderManager.getViewport().getWorldWidth() - 0.5f);
+        float y = renderManager.getViewport().getWorldHeight() - ctx.hudHeight;
 
-    private void updateFloatingTexts(float delta) {
-        for (int i = ctx.floatingTexts.size - 1; i >= 0; i--) {
-            com.natalia.natarunner.ui.FloatingText ft = ctx.floatingTexts.get(i);
-            ft.timeLeft -= delta;
-            ft.pos.y += 0.8f * delta;
-            ft.alpha = MathUtils.clamp(ft.timeLeft / 0.6f, 0f, 1f);
-
-            if (ft.timeLeft <= 0f) {
-                ctx.floatingTexts.removeIndex(i);
-            }
-        }
+        ctx.gotasBlancas.add(new WhiteDrop(
+            gotaBlanca1,
+            gotaBlanca2,
+            gotaBlanca3,
+            x,
+            y
+        ));
     }
 
-    private void checkLevelEnd() {
-        if (ctx.score >= ctx.scoreBasta) {
-            audio.stopMusic();
-            ((NataRunner) game).session.setTearsScore(ctx.countdownTimer.getRemainingSeconds());
-            game.setScreen(new FightScreen(game));
-        }
+    private void crearGotaAmarilla() {
+        float x = MathUtils.random(0f, renderManager.getViewport().getWorldWidth() - 0.5f);
+        float y = renderManager.getViewport().getWorldHeight() - ctx.hudHeight;
+
+        ctx.gotasAmarillas.add(new YellowDrop(
+            gotaAmarillaTexture,
+            gotaAmarillaSableadaTexture,
+            x,
+            y
+        ));
     }
 
-    private void spawnWhiteDrops(float delta) {
+    private void crearGotaRoja() {
+        float x = MathUtils.random(0f, renderManager.getViewport().getWorldWidth() - 0.5f);
+        float y = renderManager.getViewport().getWorldHeight() - ctx.hudHeight;
+
+        ctx.gotasRojas.add(new RedDrop(gotaRojaTexture, x, y));
+        audio.playSound(gotaRojaSound);
+    }
+
+    private void spawnLogic(float delta) {
+
+        // Salida gotas blancas
         ctx.gotaBlancaTimer += delta;
-
         if (ctx.gotaBlancaTimer > GameConfig.tiempoCadaCuantoGotaBlanca) {
             ctx.gotaBlancaTimer = 0f;
-
-            float x = MathUtils.random(0f, renderManager.getViewport().getWorldWidth() - 0.5f);
-            float y = renderManager.getViewport().getWorldHeight() - ctx.hudHeight;
-
-            ctx.gotasBlancas.add(new WhiteDrop(
-                resources.gotaBlanca1,
-                resources.gotaBlanca2,
-                resources.gotaBlanca3,
-                x,
-                y
-            ));
-        }
-    }
-
-    private void spawnYellowDrops(float delta) {
-        if (ctx.tiempoTotal <= GameConfig.tiempoPrimeraGotaAmarilla) {
-            return;
+            crearGotaBlanca();
         }
 
-        ctx.gotaAmarillaTimer += delta;
-
-        if (ctx.gotaAmarillaTimer > GameConfig.tiempoCadaCuantoAmarilla) {
-            ctx.gotaAmarillaTimer = 0f;
-
-            float x = MathUtils.random(0f, renderManager.getViewport().getWorldWidth() - 0.5f);
-            float y = renderManager.getViewport().getWorldHeight() - ctx.hudHeight;
-
-            ctx.gotasAmarillas.add(
-                new YellowDrop(resources.gotaAmarillaTexture, resources.gotaAmarillaSableadaTexture, x, y)
-            );
-        }
-    }
-
-    private void spawnRedDrops(float delta) {
-        if (ctx.tiempoTotal <= GameConfig.tiempoPrimeraGotaRoja) {
-            return;
+        // Hago aparecer gota amarilla a los 8 segundos
+        if (ctx.tiempoTotal > GameConfig.tiempoPrimeraGotaAmarilla) {
+            ctx.gotaAmarillaTimer += delta;
+            if (ctx.gotaAmarillaTimer > GameConfig.tiempoCadaCuantoAmarilla) {
+                ctx.gotaAmarillaTimer = 0f;
+                crearGotaAmarilla();
+            }
         }
 
-        ctx.gotaRojaTimer += delta;
-
-        if (ctx.gotaRojaTimer > GameConfig.tiempoCadaCuantoRoja) {
-            ctx.gotaRojaTimer = 0f;
-
-            float x = MathUtils.random(0f, renderManager.getViewport().getWorldWidth() - 0.8f);
-            float y = renderManager.getViewport().getWorldHeight() - ctx.hudHeight;
-
-            ctx.gotasRojas.add(new RedDrop(resources.gotaRojaTexture, x, y));
-            audio.playSound(resources.gotaRojaSound);
+        // Hago aparecer gota roja a los 15 segundos o lo que se programe
+        if (ctx.tiempoTotal > GameConfig.tiempoPrimeraGotaRoja) {
+            ctx.gotaRojaTimer += delta;
+            if (ctx.gotaRojaTimer > GameConfig.tiempoCadaCuantoRoja) {
+                ctx.gotaRojaTimer = 0f;
+                crearGotaRoja();
+            }
         }
+
+
     }
 
     private void updateWhiteDrops(float delta) {
+
         for (int i = ctx.gotasBlancas.size - 1; i >= 0; i--) {
+
             WhiteDrop gota = ctx.gotasBlancas.get(i);
             gota.update(delta);
 
             if (gota.isOutOfScreen()) {
                 ctx.gotasBlancas.removeIndex(i);
-            } else if (ctx.playerTears.getBounds().overlaps(gota.getBounds())) {
+            }
+            else if (ctx.playerTears.getBounds().overlaps(gota.getBounds())) {
                 ctx.gotasBlancas.removeIndex(i);
                 audio.playSound(gotaBlancaSound);
                 ctx.score += WhiteDrop.POINTS;
 
-                ctx.floatingTexts.add(new com.natalia.natarunner.ui.FloatingText(
+                ctx.floatingTexts.add(new FloatingText(
                     "+" + WhiteDrop.POINTS,
                     gota.getSprite().getX(),
                     gota.getSprite().getY(),
@@ -453,6 +403,7 @@ public class TearsLogicManager {
     }
 
     private void updateYellowDrops(float delta) {
+
         for (int i = ctx.gotasAmarillas.size - 1; i >= 0; i--) {
             YellowDrop gota = ctx.gotasAmarillas.get(i);
             gota.update(delta);
@@ -462,13 +413,14 @@ public class TearsLogicManager {
             }
 
             if (gota.isOutOfScreen()) {
+
                 float x = gota.getSprite().getX();
                 float y = Math.max(gota.getSprite().getY(), 0.2f);
 
                 ctx.gotasAmarillas.removeIndex(i);
                 audio.playSound(gotaAmarillaFallSound);
                 ctx.score -= YellowDrop.PENALTY;
-                if (ctx.score < 0) ctx.score = 0;
+                if (ctx.score < 0) ctx.score = 0;   // para que no me salgan negativos
 
                 if (ctx.score <= 0) {
                     loseHeartOrGameOver(
@@ -478,12 +430,10 @@ public class TearsLogicManager {
                         new Color(1f, 0.2f, 0.2f, 1f)
                     );
                 } else {
-                    if (ctx.flashMessage != null) {
-                        ctx.flashMessage.show(
-                            new Color(1f, 1f, 0f, 1f),
-                            "-" + YellowDrop.PENALTY
-                        );
-                    }
+                    ctx.flashMessage.show(
+                        new Color(1f, 1f, 0f, 1f),
+                        "-" + YellowDrop.PENALTY
+                    );
 
                     ctx.floatingTexts.add(new FloatingText(
                         "-" + YellowDrop.PENALTY,
@@ -493,10 +443,12 @@ public class TearsLogicManager {
                         Color.YELLOW
                     ));
                 }
-            } else if (ctx.playerTears.getBounds().overlaps(gota.getBounds())) {
-                ctx.gotasAmarillas.removeIndex(i);
+            }
+            else if (ctx.playerTears.getBounds().overlaps(gota.getBounds())) {
 
                 if (gota.isLethal()) {
+                    ctx.gotasAmarillas.removeIndex(i);
+
                     loseHeartOrGameOver(
                         false,
                         false,
@@ -504,10 +456,11 @@ public class TearsLogicManager {
                         new Color(1f, 0.4f, 0.1f, 1f)
                     );
                 } else {
+                    ctx.gotasAmarillas.removeIndex(i);
                     audio.playSound(gotaAmarillaSound);
                     ctx.score += YellowDrop.POINTS;
 
-                    ctx.floatingTexts.add(new com.natalia.natarunner.ui.FloatingText(
+                    ctx.floatingTexts.add(new FloatingText(
                         "+" + YellowDrop.POINTS,
                         gota.getSprite().getX(),
                         gota.getSprite().getY(),
@@ -577,21 +530,23 @@ public class TearsLogicManager {
         float worldHeight = renderManager.getViewport().getWorldHeight();
 
         for (int i = ctx.redProjectiles.size - 1; i >= 0; i--) {
-            com.natalia.natarunner.model.entities.projectile.RedDropProjectile p = ctx.redProjectiles.get(i);
+            RedDropProjectile p = ctx.redProjectiles.get(i);
             p.update(delta);
 
+            // Fuera del mundo
             if (p.isOutOfWorld(worldWidth, worldHeight)) {
                 ctx.redProjectiles.removeIndex(i);
                 continue;
             }
 
+            // Impacto con player -> penalización de 25
             if (ctx.playerTears.getBounds().overlaps(p.getBounds())) {
                 float x = p.getX();
                 float y = p.getY();
 
                 ctx.redProjectiles.removeIndex(i);
                 ctx.score -= RED_PROJECTILE_PENALTY;
-                if (ctx.score < 0) ctx.score = 0;
+                if (ctx.score < 0) ctx.score = 0;   // para que no me salgan negativos
 
                 if (ctx.score <= 0) {
                     loseHeartOrGameOver(
@@ -601,14 +556,12 @@ public class TearsLogicManager {
                         new Color(1f, 0.2f, 0.2f, 1f)
                     );
                 } else {
-                    if (ctx.flashMessage != null) {
-                        ctx.flashMessage.show(
-                            new Color(1f, 0.3f, 0.3f, 1f),
-                            "-" + RED_PROJECTILE_PENALTY
-                        );
-                    }
+                    ctx.flashMessage.show(
+                        new Color(1f, 0.3f, 0.3f, 1f),
+                        "-" + RED_PROJECTILE_PENALTY
+                    );
 
-                    ctx.floatingTexts.add(new com.natalia.natarunner.ui.FloatingText(
+                    ctx.floatingTexts.add(new FloatingText(
                         "-" + RED_PROJECTILE_PENALTY,
                         x,
                         y,
@@ -619,6 +572,7 @@ public class TearsLogicManager {
                 continue;
             }
 
+            // Impacto con gotas blancas -> se borran
             boolean removedProjectile = false;
 
             for (int j = ctx.gotasBlancas.size - 1; j >= 0; j--) {
@@ -634,29 +588,55 @@ public class TearsLogicManager {
 
             if (removedProjectile) continue;
 
+            // Impacto con gotas amarillas -> se borran, estén o no letales
             for (int j = ctx.gotasAmarillas.size - 1; j >= 0; j--) {
                 YellowDrop amarilla = ctx.gotasAmarillas.get(j);
 
                 if (amarilla.getBounds().overlaps(p.getBounds())) {
                     ctx.gotasAmarillas.removeIndex(j);
                     ctx.redProjectiles.removeIndex(i);
+                    removedProjectile = true;
                     break;
                 }
+            }
+
+            if (removedProjectile) continue;
+        }
+    }
+
+    private void updateFloatingTexts(float delta) {
+
+        for (int i = ctx.floatingTexts.size - 1; i >= 0; i--) {
+            FloatingText ft = ctx.floatingTexts.get(i);
+            ft.timeLeft -= delta;
+            ft.pos.y += 0.8f * delta;
+            ft.alpha = MathUtils.clamp(ft.timeLeft / 0.6f, 0f, 1f);
+
+            if (ft.timeLeft <= 0f) {
+                ctx.floatingTexts.removeIndex(i);
             }
         }
     }
 
-    public void hide() {
-        audio.stopMusic();
+    private void checkLevelEnd() {
+        if (ctx.score >= ctx.scoreBasta) {
+
+            if (music != null) {
+                music.stop();
+            }
+
+            NataRunner nataRunner = (NataRunner) game;
+            nataRunner.session.setTearsScore(ctx.countdownTimer.getRemainingSeconds());
+
+            game.setScreen(new FightScreen(game, audio, resources, settings));
+        }
     }
 
+    // Método para Game Over directo
     private void triggerGameOver(String message, Color color) {
         if (ctx.state == TearsGameContext.GameState.GAMEOVER) return;
 
-        if (ctx.flashMessage != null) {
-            ctx.flashMessage.show(color, message);
-        }
-
+        ctx.flashMessage.show(color, message);
         ctx.state = TearsGameContext.GameState.GAMEOVER;
 
         if (music != null) {
@@ -692,60 +672,5 @@ public class TearsLogicManager {
 
     }
 
-    private void crearGotaBlanca() {
-        float x = MathUtils.random(0f, renderManager.getViewport().getWorldWidth() - 0.5f);
-        float y = renderManager.getViewport().getWorldHeight() - ctx.hudHeight;
 
-        ctx.gotasBlancas.add(new WhiteDrop(
-            gotaBlanca1,
-            gotaBlanca2,
-            gotaBlanca3,
-            x,
-            y
-        ));
-    }
-
-    private void crearGotaAmarilla() {
-        float x = MathUtils.random(0f, renderManager.getViewport().getWorldWidth() - 0.5f);
-        float y = renderManager.getViewport().getWorldHeight() - ctx.hudHeight;
-
-        ctx.gotasAmarillas.add(new YellowDrop(
-            gotaAmarillaTexture,
-            gotaAmarillaSableadaTexture,
-            x,
-            y
-        ));
-    }
-
-    private void crearGotaRoja() {
-        float x = MathUtils.random(0f, renderManager.getViewport().getWorldWidth() - 0.5f);
-        float y = renderManager.getViewport().getWorldHeight() - ctx.hudHeight;
-
-        ctx.gotasRojas.add(new RedDrop(gotaRojaTexture, x, y));
-        audio.playSound(gotaRojaSound);
-    }
-
-    private void spawnLogic(float delta) {
-        ctx.gotaBlancaTimer += delta;
-        if (ctx.gotaBlancaTimer > GameConfig.tiempoCadaCuantoGotaBlanca) {
-            ctx.gotaBlancaTimer = 0f;
-            crearGotaBlanca();
-        }
-
-        if (ctx.tiempoTotal > GameConfig.tiempoPrimeraGotaAmarilla) {
-            ctx.gotaAmarillaTimer += delta;
-            if (ctx.gotaAmarillaTimer > GameConfig.tiempoCadaCuantoAmarilla) {
-                ctx.gotaAmarillaTimer = 0f;
-                crearGotaAmarilla();
-            }
-        }
-
-        if (ctx.tiempoTotal > GameConfig.tiempoPrimeraGotaRoja) {
-            ctx.gotaRojaTimer += delta;
-            if (ctx.gotaRojaTimer > GameConfig.tiempoCadaCuantoRoja) {
-                ctx.gotaRojaTimer = 0f;
-                crearGotaRoja();
-            }
-        }
-    }
 }

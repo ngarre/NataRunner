@@ -22,6 +22,8 @@ public class GameConfig {
     public static final float tiempoCadaCuantoRoja = 8f;
     public static final float probabilidadRojaDispara = 0.6f;
 
+    public static final float duracionFlashMensaje = 1.5f;
+
     private GameConfig() {
     }
 }
