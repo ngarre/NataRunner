@@ -2,8 +2,6 @@ package com.natalia.natarunner.screens;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.natalia.natarunner.config.GameConfig;
 import com.natalia.natarunner.manager.AudioManager;
 import com.natalia.natarunner.manager.GameSettings;
 import com.natalia.natarunner.manager.ResourceManager;
@@ -21,14 +19,12 @@ public class TearsScreen implements Screen {
     public TearsScreen(Game game, AudioManager audio, ResourceManager resources, GameSettings settings) {
         this.ctx = new TearsGameContext();
 
-        FitViewport viewport = new FitViewport(GameConfig.mundoAnchoTears, GameConfig.mundoAltoTears);
-        FitViewport hudViewport = new FitViewport(1228, 768);
-
-        this.resources = resources;
-        this.renderManager = new TearsRenderManager(resources, ctx, viewport, hudViewport);
+        this.renderManager = new TearsRenderManager(resources, ctx);
         this.logicManager = new TearsLogicManager(game, audio, resources, settings, ctx);
+
         this.logicManager.setRenderManager(this.renderManager);
         this.logicManager.setOwnerScreen(this);
+        this.resources = resources;
     }
 
     @Override

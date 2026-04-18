@@ -16,23 +16,21 @@ public class TearsRenderManager {
 
     private final ResourceManager resources;
     private final TearsGameContext ctx;
-    private final FitViewport viewport;
-    private final FitViewport hudViewport;
+    private FitViewport viewport;
+    private FitViewport hudViewport;
 
     private SpriteBatch spriteBatch;
 
-    public TearsRenderManager(ResourceManager resources,
-                              TearsGameContext ctx,
-                              FitViewport viewport,
-                              FitViewport hudViewport) {
+    public TearsRenderManager(ResourceManager resources, TearsGameContext ctx) {
         this.resources = resources;
         this.ctx = ctx;
-        this.viewport = viewport;
-        this.hudViewport = hudViewport;
     }
 
     public void show() {
         spriteBatch = new SpriteBatch();
+
+        viewport = new FitViewport(12.28f, 7.68f);
+        hudViewport = new FitViewport(1228, 768);
 
         float w = 300f;
         float h = 300f;
