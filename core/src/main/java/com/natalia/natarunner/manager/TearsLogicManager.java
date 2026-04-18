@@ -21,7 +21,6 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.natalia.natarunner.ui.FloatingText;
-import com.natalia.natarunner.model.entities.projectile.RedDropProjectile;
 
 public class TearsLogicManager {
 
