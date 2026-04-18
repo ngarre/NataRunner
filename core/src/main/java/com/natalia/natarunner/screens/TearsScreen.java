@@ -26,7 +26,7 @@ public class TearsScreen implements Screen {
 
         this.resources = resources;
         this.renderManager = new TearsRenderManager(resources, ctx, viewport, hudViewport);
-        this.logicManager = new TearsLogicManager(game, audio, resources, settings, ctx, viewport, hudViewport);
+        this.logicManager = new TearsLogicManager(game, audio, resources, settings, ctx);
         this.logicManager.setRenderManager(this.renderManager);
         this.logicManager.setOwnerScreen(this);
     }

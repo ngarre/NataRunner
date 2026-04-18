@@ -33,8 +33,6 @@ public class TearsLogicManager {
     private final ResourceManager resources;
     private final GameSettings settings;
     private final TearsGameContext ctx;
-    private final FitViewport viewport;
-    private final FitViewport hudViewport;
     private final Vector2 mouseHud = new Vector2();
 
     private Music music;
@@ -70,17 +68,13 @@ public class TearsLogicManager {
         AudioManager audio,
         ResourceManager resources,
         GameSettings settings,
-        TearsGameContext ctx,
-        FitViewport viewport,
-        FitViewport hudViewport
+        TearsGameContext ctx
     ) {
         this.game = game;
         this.audio = audio;
         this.resources = resources;
         this.settings = settings;
         this.ctx = ctx;
-        this.viewport = viewport;
-        this.hudViewport = hudViewport;
     }
 
     public void show() {
@@ -310,8 +304,8 @@ public class TearsLogicManager {
 
         ctx.playerTears.update(
             delta,
-            viewport.getWorldWidth(),
-            viewport.getWorldHeight(),
+            renderManager.getViewport().getWorldWidth(),
+            renderManager.getViewport().getWorldHeight(),
             ctx.hudHeight
         );
 
@@ -367,8 +361,8 @@ public class TearsLogicManager {
         if (ctx.gotaBlancaTimer > GameConfig.tiempoCadaCuantoGotaBlanca) {
             ctx.gotaBlancaTimer = 0f;
 
-            float x = MathUtils.random(0f, viewport.getWorldWidth() - 0.5f);
-            float y = viewport.getWorldHeight() - ctx.hudHeight;
+            float x = MathUtils.random(0f, renderManager.getViewport().getWorldWidth() - 0.5f);
+            float y = renderManager.getViewport().getWorldHeight() - ctx.hudHeight;
 
             ctx.gotasBlancas.add(new WhiteDrop(
                 resources.gotaBlanca1,
@@ -390,8 +384,8 @@ public class TearsLogicManager {
         if (ctx.gotaAmarillaTimer > GameConfig.tiempoCadaCuantoAmarilla) {
             ctx.gotaAmarillaTimer = 0f;
 
-            float x = MathUtils.random(0f, viewport.getWorldWidth() - 0.5f);
-            float y = viewport.getWorldHeight() - ctx.hudHeight;
+            float x = MathUtils.random(0f, renderManager.getViewport().getWorldWidth() - 0.5f);
+            float y = renderManager.getViewport().getWorldHeight() - ctx.hudHeight;
 
             ctx.gotasAmarillas.add(
                 new YellowDrop(resources.gotaAmarillaTexture, resources.gotaAmarillaSableadaTexture, x, y)
@@ -409,8 +403,8 @@ public class TearsLogicManager {
         if (ctx.gotaRojaTimer > GameConfig.tiempoCadaCuantoRoja) {
             ctx.gotaRojaTimer = 0f;
 
-            float x = MathUtils.random(0f, viewport.getWorldWidth() - 0.8f);
-            float y = viewport.getWorldHeight() - ctx.hudHeight;
+            float x = MathUtils.random(0f, renderManager.getViewport().getWorldWidth() - 0.8f);
+            float y = renderManager.getViewport().getWorldHeight() - ctx.hudHeight;
 
             ctx.gotasRojas.add(new RedDrop(resources.gotaRojaTexture, x, y));
             audio.playSound(resources.gotaRojaSound);
@@ -544,7 +538,7 @@ public class TearsLogicManager {
                 ctx.gotasRojas.removeIndex(i);
             }
             else if (
-                gota.getSprite().getY() < viewport.getWorldHeight() - ctx.hudHeight - 0.35f
+                gota.getSprite().getY() < renderManager.getViewport().getWorldHeight() - ctx.hudHeight - 0.35f
                     && ctx.playerTears.getBounds().overlaps(gota.getReducedBounds())
             ) {
                 ctx.gotasRojas.removeIndex(i);
@@ -561,8 +555,8 @@ public class TearsLogicManager {
 
     private void updateRedProjectiles(float delta) {
 
-        float worldWidth = viewport.getWorldWidth();
-        float worldHeight = viewport.getWorldHeight();
+        float worldWidth = renderManager.getViewport().getWorldWidth();
+        float worldHeight = renderManager.getViewport().getWorldHeight();
 
         for (int i = ctx.redProjectiles.size - 1; i >= 0; i--) {
             com.natalia.natarunner.model.entities.projectile.RedDropProjectile p = ctx.redProjectiles.get(i);
