@@ -230,6 +230,16 @@ public class TearsLogicManager {
 
         updateFloatingTexts(delta);
 
+        if (ctx.countdownTimer.isFinished() &&
+            ctx.state != TearsGameContext.GameState.GAMEOVER) {
+            loseHeartOrGameOver(
+                false,
+                true,
+                "¡ TIME OVER !",
+                new Color(1f, 0f, 0f, 1f)
+            );
+        }
+
         checkLevelEnd();
 
         ((NataRunner) game).session.setTearsScore(ctx.score);
@@ -353,25 +363,36 @@ public class TearsLogicManager {
                 ctx.score -= YellowDrop.PENALTY;
                 if (ctx.score < 0) ctx.score = 0;
 
-                if (ctx.flashMessage != null) {
-                    ctx.flashMessage.show(
-                        new Color(1f, 1f, 0f, 1f),
-                        "-" + YellowDrop.PENALTY
+                if (ctx.score <= 0) {
+                    loseHeartOrGameOver(
+                        true,
+                        false,
+                        "¡ SCORE OUT !",
+                        new Color(1f, 0.2f, 0.2f, 1f)
                     );
-                }
+                } else {
+                    if (ctx.flashMessage != null) {
+                        ctx.flashMessage.show(
+                            new Color(1f, 1f, 0f, 1f),
+                            "-" + YellowDrop.PENALTY
+                        );
+                    }
 
-                ctx.floatingTexts.add(new FloatingText(
-                    "-" + YellowDrop.PENALTY,
-                    x,
-                    y,
-                    0.6f,
-                    Color.YELLOW
-                ));
+                    ctx.floatingTexts.add(new FloatingText(
+                        "-" + YellowDrop.PENALTY,
+                        x,
+                        y,
+                        0.6f,
+                        Color.YELLOW
+                    ));
+                }
             } else if (ctx.playerTears.getBounds().overlaps(gota.getBounds())) {
                 ctx.gotasAmarillas.removeIndex(i);
 
                 if (gota.isLethal()) {
                     loseHeartOrGameOver(
+                        false,
+                        false,
                         "¡ YOU ARE STABBED !",
                         new Color(1f, 0.4f, 0.1f, 1f)
                     );
@@ -403,8 +424,10 @@ public class TearsLogicManager {
             } else if (ctx.playerTears.getBounds().overlaps(gota.getReducedBounds())) {
                 ctx.gotasRojas.removeIndex(i);
                 loseHeartOrGameOver(
-                    "¡ TOUCHED by a Red Tear !",
-                    new Color(1f, 0f, 0f, 1f)
+                    false,
+                    false,
+                    "¡ YOU ARE STABBED !",
+                    new Color(1f, 0.4f, 0.1f, 1f)
                 );
             }
         }
@@ -428,20 +451,31 @@ public class TearsLogicManager {
         }
     }
 
-    private void loseHeartOrGameOver(String message, Color color) {
+    // Método general para perder un corazón
+    private void loseHeartOrGameOver(boolean resetScore, boolean resetTimer, String message, Color color) {
         if (ctx.state == TearsGameContext.GameState.GAMEOVER) return;
 
+        // Si queda solo un corazón, esta condición ya mata
         if (ctx.hearts <= 1) {
-            audio.playSound(resources.sonidoMortal);
             triggerGameOver(message, color);
             return;
         }
 
+        // Si quedan más, pierde un corazón
         ctx.hearts--;
+
+        // SONIDO DE DAÑO / VIDA PERDIDA
         audio.playSound(resources.sonidoMortal);
 
-        if (ctx.flashMessage != null) {
-            ctx.flashMessage.show(color, message);
+        if (resetScore) {
+            ctx.score = 100;
         }
+
+        if (resetTimer && ctx.countdownTimer != null) {
+            ctx.countdownTimer.reset(60f);
+        }
+
+        ctx.flashMessage.show(color, message);
+
     }
 }
