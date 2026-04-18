@@ -21,6 +21,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Color;
+import com.natalia.natarunner.ui.FloatingText;
 
 public class TearsLogicManager {
 
@@ -352,14 +353,20 @@ public class TearsLogicManager {
                 ctx.score -= YellowDrop.PENALTY;
                 if (ctx.score < 0) ctx.score = 0;
 
-                ctx.floatingTexts.add(new com.natalia.natarunner.ui.FloatingText(
+                if (ctx.flashMessage != null) {
+                    ctx.flashMessage.show(
+                        new Color(1f, 1f, 0f, 1f),
+                        "-" + YellowDrop.PENALTY
+                    );
+                }
+
+                ctx.floatingTexts.add(new FloatingText(
                     "-" + YellowDrop.PENALTY,
                     x,
                     y,
                     0.6f,
                     Color.YELLOW
                 ));
-
             } else if (ctx.playerTears.getBounds().overlaps(gota.getBounds())) {
                 ctx.gotasAmarillas.removeIndex(i);
 

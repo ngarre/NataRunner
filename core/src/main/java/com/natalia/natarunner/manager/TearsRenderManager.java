@@ -11,6 +11,7 @@ import com.natalia.natarunner.screens.context.TearsGameContext;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.math.Vector2;
 import com.natalia.natarunner.ui.FloatingText;
+import com.natalia.natarunner.ui.FlashMessage;
 
 public class TearsRenderManager {
 
@@ -105,18 +106,14 @@ public class TearsRenderManager {
         );
         spriteBatch.setColor(1f, 1f, 1f, 1f);
 
-        // Score
         ctx.font.draw(spriteBatch, "SCORE: " + ctx.score, 15, 745);
 
-        // Corazones con iconos
         renderHearts(screenHeight);
 
-        // Timer
         if (ctx.countdownTimer != null) {
             ctx.countdownTimer.draw(spriteBatch, 610f, 745f);
         }
 
-        // Score bar
         if (ctx.scoreBar != null) {
             ctx.scoreBar.draw(
                 spriteBatch,
@@ -127,13 +124,25 @@ public class TearsRenderManager {
             );
         }
 
+        float flashHeight = 40f;
+
+        if (ctx.flashMessage != null && ctx.smallFont != null) {
+            ctx.flashMessage.draw(
+                spriteBatch,
+                resources.hudBackground,
+                ctx.smallFont,
+                screenWidth,
+                flashHeight
+            );
+        }
+
         if (ctx.state == TearsGameContext.GameState.GAMEOVER) {
             sacarGameOver(screenWidth, screenHeight);
         }
 
         if (ctx.smallFont != null) {
-            for (FloatingText ft : ctx.floatingTexts) {
-                Vector2 screenPos = new Vector2(ft.pos.x, ft.pos.y);
+            for (com.natalia.natarunner.ui.FloatingText ft : ctx.floatingTexts) {
+                com.badlogic.gdx.math.Vector2 screenPos = new com.badlogic.gdx.math.Vector2(ft.pos.x, ft.pos.y);
                 viewport.project(screenPos);
 
                 ctx.smallFont.setColor(ft.color.r, ft.color.g, ft.color.b, ft.alpha);
@@ -143,7 +152,6 @@ public class TearsRenderManager {
             ctx.smallFont.setColor(1f, 1f, 1f, 1f);
         }
 
-        // Texto inferior derecho
         renderLevelTitle(spriteBatch);
 
         spriteBatch.end();
