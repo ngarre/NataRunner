@@ -176,6 +176,11 @@ public class TearsLogicManager {
             return;
         }
 
+        if (Gdx.input.isKeyJustPressed(Input.Keys.L)) {
+            ctx.score = ctx.scoreBasta;
+            return;
+        }
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             audio.stopMusic();
             game.setScreen(new MenuScreen(
