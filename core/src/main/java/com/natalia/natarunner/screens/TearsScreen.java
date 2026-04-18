@@ -37,7 +37,8 @@ public class TearsScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        logicManager.render(delta);
+        logicManager.input();
+        logicManager.update(delta);
         renderManager.draw();
     }
 

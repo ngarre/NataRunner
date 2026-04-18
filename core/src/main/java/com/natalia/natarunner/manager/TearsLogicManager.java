@@ -144,15 +144,7 @@ public class TearsLogicManager {
         ((NataRunner) game).session.setTearsScore(ctx.score);
     }
 
-    public void render(float delta) {
-        input(delta);
-
-        if (ctx.state == TearsGameContext.GameState.PLAYING) {
-            update(delta);
-        }
-    }
-
-    private void input(float delta) {
+    public void input() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.M)) {
             ctx.pauseOnlyMusic = !ctx.pauseOnlyMusic;
             if (ctx.pauseOnlyMusic) {
@@ -203,6 +195,18 @@ public class TearsLogicManager {
             }
         }
 
+        if (ctx.state == TearsGameContext.GameState.GAMEOVER) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+                game.setScreen(new MenuScreen(
+                    game,
+                    ((NataRunner) game).audioManager,
+                    ((NataRunner) game).resources,
+                    ((NataRunner) game).settings
+                ));
+            }
+            return;
+        }
+
         if (ctx.state == TearsGameContext.GameState.PAUSED) {
 
             PauseMenu.PauseOption option =
@@ -251,18 +255,6 @@ public class TearsLogicManager {
         if (ctx.state == TearsGameContext.GameState.INTRO) {
             boolean startGame = false;
 
-            if (ctx.state == TearsGameContext.GameState.GAMEOVER) {
-                if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-                    game.setScreen(new MenuScreen(
-                        game,
-                        ((NataRunner) game).audioManager,
-                        ((NataRunner) game).resources,
-                        ((NataRunner) game).settings
-                    ));
-                }
-                return;
-            }
-
             if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
                 startGame = true;
             }
@@ -283,7 +275,31 @@ public class TearsLogicManager {
             return;
         }
 
-        ctx.playerTears.handleKeyboard(delta);
+        if (ctx.state == TearsGameContext.GameState.PLAYING) {
+            if (settings.isMouseEnabled()) {
+
+                Vector2 mouseWorld = new Vector2(Gdx.input.getX(), Gdx.input.getY());
+
+                if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+                    renderManager.getViewport().unproject(mouseWorld);
+                    ctx.playerTears.updateBounds();
+
+                    if (ctx.playerTears.getBounds().contains(mouseWorld)) {
+                        ctx.dragging = true;
+                    }
+                }
+
+                if (!Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+                    ctx.dragging = false;
+                }
+
+                if (ctx.dragging) {
+                    mouseWorld.set(Gdx.input.getX(), Gdx.input.getY());
+                    renderManager.getViewport().unproject(mouseWorld);
+                    ctx.playerTears.handleMouseDrag(mouseWorld);
+                }
+            }
+        }
 
         if (settings.isMouseEnabled() && Gdx.input.isTouched()) {
             Vector2 mouseWorld = new Vector2(Gdx.input.getX(), Gdx.input.getY());
@@ -292,32 +308,25 @@ public class TearsLogicManager {
         }
     }
 
-    private void update(float delta) {
-        if (ctx.freezeMode) {
-            return;
+    public void update(float delta) {
+        if (ctx.state == TearsGameContext.GameState.PLAYING && !ctx.freezeMode) {
+            logic(delta);
         }
+    }
 
-        ctx.countdownTimer.update(delta);
-        ctx.flashMessage.update(delta);
-
+    private void logic(float delta) {
         ctx.tiempoTotal += delta;
 
-        ctx.playerTears.update(
-            delta,
-            renderManager.getViewport().getWorldWidth(),
-            renderManager.getViewport().getWorldHeight(),
-            ctx.hudHeight
-        );
-
-        spawnWhiteDrops(delta);
-        spawnYellowDrops(delta);
-        spawnRedDrops(delta);
-
+        playerLogic(delta);
+        spawnLogic(delta);
         updateWhiteDrops(delta);
         updateYellowDrops(delta);
         updateRedDrops(delta);
         updateRedProjectiles(delta);
         updateFloatingTexts(delta);
+
+        ctx.flashMessage.update(delta);
+        ctx.countdownTimer.update(delta);
 
         if (ctx.countdownTimer.isFinished() &&
             ctx.state != TearsGameContext.GameState.GAMEOVER) {
@@ -330,8 +339,17 @@ public class TearsLogicManager {
         }
 
         checkLevelEnd();
+    }
 
-        ((NataRunner) game).session.setTearsScore(ctx.score);
+    private void playerLogic(float delta) {
+        ctx.playerTears.handleKeyboard(delta);
+
+        ctx.playerTears.update(
+            delta,
+            renderManager.getViewport().getWorldWidth(),
+            renderManager.getViewport().getWorldHeight(),
+            ctx.hudHeight
+        );
     }
 
     private void updateFloatingTexts(float delta) {
@@ -672,5 +690,62 @@ public class TearsLogicManager {
 
         ctx.flashMessage.show(color, message);
 
+    }
+
+    private void crearGotaBlanca() {
+        float x = MathUtils.random(0f, renderManager.getViewport().getWorldWidth() - 0.5f);
+        float y = renderManager.getViewport().getWorldHeight() - ctx.hudHeight;
+
+        ctx.gotasBlancas.add(new WhiteDrop(
+            gotaBlanca1,
+            gotaBlanca2,
+            gotaBlanca3,
+            x,
+            y
+        ));
+    }
+
+    private void crearGotaAmarilla() {
+        float x = MathUtils.random(0f, renderManager.getViewport().getWorldWidth() - 0.5f);
+        float y = renderManager.getViewport().getWorldHeight() - ctx.hudHeight;
+
+        ctx.gotasAmarillas.add(new YellowDrop(
+            gotaAmarillaTexture,
+            gotaAmarillaSableadaTexture,
+            x,
+            y
+        ));
+    }
+
+    private void crearGotaRoja() {
+        float x = MathUtils.random(0f, renderManager.getViewport().getWorldWidth() - 0.5f);
+        float y = renderManager.getViewport().getWorldHeight() - ctx.hudHeight;
+
+        ctx.gotasRojas.add(new RedDrop(gotaRojaTexture, x, y));
+        audio.playSound(gotaRojaSound);
+    }
+
+    private void spawnLogic(float delta) {
+        ctx.gotaBlancaTimer += delta;
+        if (ctx.gotaBlancaTimer > GameConfig.tiempoCadaCuantoGotaBlanca) {
+            ctx.gotaBlancaTimer = 0f;
+            crearGotaBlanca();
+        }
+
+        if (ctx.tiempoTotal > GameConfig.tiempoPrimeraGotaAmarilla) {
+            ctx.gotaAmarillaTimer += delta;
+            if (ctx.gotaAmarillaTimer > GameConfig.tiempoCadaCuantoAmarilla) {
+                ctx.gotaAmarillaTimer = 0f;
+                crearGotaAmarilla();
+            }
+        }
+
+        if (ctx.tiempoTotal > GameConfig.tiempoPrimeraGotaRoja) {
+            ctx.gotaRojaTimer += delta;
+            if (ctx.gotaRojaTimer > GameConfig.tiempoCadaCuantoRoja) {
+                ctx.gotaRojaTimer = 0f;
+                crearGotaRoja();
+            }
+        }
     }
 }
