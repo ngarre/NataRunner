@@ -20,8 +20,8 @@ public class LogoIntroAnimation {
     private float width;
     private float height;
 
+    // controlo cuando termina la animación
     private boolean finished = false;
-
     public boolean isFinished() {
         return finished;
     }
@@ -38,6 +38,8 @@ public class LogoIntroAnimation {
     }
 
     public void update(float delta) {
+
+        // Fade-in
         if (alpha < 1f) {
             alpha += fadeSpeed * delta;
             if (alpha > 1f) alpha = 1f;
@@ -58,12 +60,18 @@ public class LogoIntroAnimation {
             }
         }
 
+        // La animación ha terminado cuando:
+        // - alpha == 1
+        // - ya no se está moviendo
         if (alpha >= 1f && !movingUp && y == targetY) {
             finished = true;
         }
+
+
     }
 
     public void draw(SpriteBatch batch, Viewport viewport) {
+
         float x = viewport.getWorldWidth() / 2f - width / 2f;
 
         batch.setColor(1f, 1f, 1f, alpha);

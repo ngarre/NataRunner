@@ -11,14 +11,21 @@ import com.badlogic.gdx.math.Vector2;
 
 public class PlayerTears {
 
-    private final Sprite sprite;
-    private final Rectangle bounds = new Rectangle();
+    /*
+        La animación del personaje en TearsScreen se implementa mediante alternancia temporizada
+        entre dos sprites (manos abiertas y manos cerradas), generando un ciclo visual continuo
+        independiente del desplazamiento del jugador.
+     */
+
+    private Sprite sprite;
+    private Rectangle bounds = new Rectangle();
 
     private final Texture manosTexture;
     private final Texture manosCerradasTexture;
 
     private float speed = 15f;
 
+    // Animación por tiempo
     private float animationTimer = 0f;
     private final float frameDuration = 0.5f;
     private int currentFrame = 0;
@@ -30,17 +37,20 @@ public class PlayerTears {
         sprite = new Sprite(manosTexture);
         sprite.setSize(1f, 1f);
         sprite.setPosition(x, y);
-        updateBounds();
     }
 
+    // =========================
+    // INPUT TECLADO
+    // =========================
     public void handleKeyboard(float delta) {
+
         float moveX = 0f;
         float moveY = 0f;
 
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) moveX += 1f;
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) moveX -= 1f;
-        if (Gdx.input.isKeyPressed(Input.Keys.UP)) moveY += 1f;
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) moveY -= 1f;
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT))  moveX -= 1f;
+        if (Gdx.input.isKeyPressed(Input.Keys.UP))    moveY += 1f;
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN))  moveY -= 1f;
 
         if (moveX != 0f && moveY != 0f) {
             float inv = 0.7071f;
@@ -54,13 +64,22 @@ public class PlayerTears {
         sprite.translate(dx, dy);
     }
 
+    // =========================
+    // INPUT RATÓN
+    // =========================
     public void handleMouseDrag(Vector2 mouseWorld) {
+
         float targetX = mouseWorld.x - sprite.getWidth() / 2f;
         float targetY = mouseWorld.y - sprite.getHeight() / 2f;
+
         sprite.setPosition(targetX, targetY);
     }
 
+    // =========================
+    // UPDATE
+    // =========================
     public void update(float delta, float worldWidth, float worldHeight, float hudHeight) {
+
         float clampedX = MathUtils.clamp(
             sprite.getX(),
             0,

@@ -6,6 +6,7 @@ import com.natalia.natarunner.model.entities.projectile.BulletChicas;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -38,17 +39,24 @@ public class PlayerBladecar {
 
     private AudioManager audio;
 
+    // Dirección horizontal
     private boolean facingLeft = true;
 
+    // =========================
+    // ANIMACIÓN NORMAL
+    // =========================
     private Animation<TextureRegion> animation;
     private float animationTime = 0f;
     private float frameDuration = 0.5f;
     private TextureRegion idleFrame;
 
+    // =========================
+    // TEXTURA DE DISPARO
+    // =========================
     private TextureRegion shootFrame;
     private boolean shooting = false;
     private float shootTimer = 0f;
-    private float shootDuration = 0.10f;
+    private float shootDuration = 0.10f; // configurable
 
     public PlayerBladecar(float viewportWidth, float viewportHeight, float desiredHeight,
                           AudioManager audio, ResourceManager resources) {
@@ -104,6 +112,7 @@ public class PlayerBladecar {
             animationTime += delta;
         }
 
+        // Control de duración del sprite de disparo
         if (shooting) {
             shootTimer -= delta;
             if (shootTimer <= 0f) {
@@ -235,7 +244,7 @@ public class PlayerBladecar {
         batch.setColor(1f, 1f, 1f, 1f);
     }
 
-    public BulletChicas shoot(com.badlogic.gdx.graphics.Texture bulletTexture) {
+    public BulletChicas shoot(Texture bulletTexture) {
 
         Rectangle r = getRect();
 
@@ -254,6 +263,7 @@ public class PlayerBladecar {
             bulletX = r.x - bulletWidth + 0.40f;
         }
 
+        // Activar sprite temporal de disparo
         startShootEffect();
 
         if (shootSound != null) {
@@ -271,9 +281,12 @@ public class PlayerBladecar {
         return arrived;
     }
 
+
+
     public void setShootDuration(float shootDuration) {
         this.shootDuration = shootDuration;
     }
+
 
     public void startInvulnerability() {
         invulnerable = true;
@@ -307,6 +320,7 @@ public class PlayerBladecar {
         dx /= len;
         dy /= len;
 
+        // cálculos del robote si toco al boss
         rect.x += dx * distance * 1.5f;
         rect.y += dy * distance * 0.8f;
 
@@ -321,5 +335,6 @@ public class PlayerBladecar {
     }
 
     public void dispose() {
+        // Las texturas las libera ResourceManager
     }
 }
