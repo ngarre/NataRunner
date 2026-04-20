@@ -17,6 +17,12 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.natalia.natarunner.manager.AudioManager;
 import com.natalia.natarunner.manager.GameSettings;
 import com.natalia.natarunner.manager.ResourceManager;
+import com.badlogic.gdx.utils.Array;
+import com.natalia.natarunner.NataRunner;
+import com.natalia.natarunner.model.ScoreEntry;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class ScoresScreen implements Screen {
 
@@ -35,6 +41,7 @@ public class ScoresScreen implements Screen {
 
     private Music music;
     private BitmapFont tableFont;
+    private Array<ScoreEntry> scores;
 
     public ScoresScreen(Game game, AudioManager audio, ResourceManager resources, GameSettings settings) {
         this.game = game;
@@ -51,14 +58,17 @@ public class ScoresScreen implements Screen {
         uiViewport = new FitViewport(1228, 768);
         uiViewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
+        //  Cargo el fondo igual que antes
         fondoTexture = resources.fondoScore;
+        //  y el único botón de volver al menú principal
         toMenuButton = resources.botonToMenu;
 
+        // Para posicionar el botón toMenu...
         float w = 3f;
         float h = 3f;
         float margin = 0.1f;
         float x = viewport.getWorldWidth() - w - margin;
-        float y = margin - 0.8f;
+        float y = margin - 0.8f;  // ajuste obtenido mediante prueba
         rectanguloBack.set(x, y, w, h);
 
         viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
@@ -68,6 +78,27 @@ public class ScoresScreen implements Screen {
         audio.playMusic(music);
 
         tableFont = resources.fontMenu;
+
+        // Tema de la puntuación
+        NataRunner nataRunner = (NataRunner) game;
+        if (!nataRunner.session.isScoreSaved()) {
+
+            String playerName = settings.getPlayerName();
+            int finalScore = nataRunner.session.getFinalScore();
+
+            long now = System.currentTimeMillis();
+            String dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+            // ... pero internamente guardo milisegundos por si se acaba una partida en el mismo minuto
+            //     por dos jugadores distintos. para que se ordene bien.
+
+            ScoreEntry newEntry = new ScoreEntry(playerName, finalScore, dateTime, now);
+            nataRunner.scoreManager.addScore(newEntry);
+
+            nataRunner.session.setScoreSaved(true);
+
+        }
+        scores = nataRunner.scoreManager.loadScores();
+
     }
 
     @Override

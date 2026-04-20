@@ -1,17 +1,32 @@
 package com.natalia.natarunner.model;
 
+
 public class ScoreEntry {
 
     private String playerName;
-    private int score;
+    private int finalScore;
+    private String dateTime;
     private long createdAt;
 
+    /*
+         Esta es la clase para una fila de resultados. Para el tema de las puntuaciones
+
+         Modelo de una fila de resultados:
+           nombre
+           puntuación final
+           fecha
+     */
+
+
+    // Constructor vacío necesario para la deserialización JSON de libGDX
     public ScoreEntry() {
+        // necesario para Json de LibGDX
     }
 
-    public ScoreEntry(String playerName, int score, long createdAt) {
+    public ScoreEntry(String playerName, int finalScore, String dateTime, long createdAt) {
         this.playerName = playerName;
-        this.score = score;
+        this.finalScore = finalScore;
+        this.dateTime = dateTime;
         this.createdAt = createdAt;
     }
 
@@ -19,23 +34,16 @@ public class ScoreEntry {
         return playerName;
     }
 
-    public int getScore() {
-        return score;
+    public int getFinalScore() {
+        return finalScore;
+    }
+
+    public String getDateTime() {
+        return dateTime;
     }
 
     public long getCreatedAt() {
         return createdAt;
     }
 
-    public void setPlayerName(String playerName) {
-        this.playerName = playerName;
-    }
-
-    public void setScore(int score) {
-        this.score = score;
-    }
-
-    public void setCreatedAt(long createdAt) {
-        this.createdAt = createdAt;
-    }
 }
