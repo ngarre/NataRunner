@@ -16,6 +16,7 @@ public class AudioManager {
     private boolean soundEnabled;
     private boolean musicEnabled;
 
+    // volumen global: 0f a 1f
     private float musicVolume;
     private float soundVolume;
 
@@ -30,6 +31,9 @@ public class AudioManager {
 
         musicVolume = prefs.getFloat(KEY_MUSIC_VOLUME, 1f);
         soundVolume = prefs.getFloat(KEY_SOUND_VOLUME, 1f);
+
+        Gdx.app.log("AudioManager",
+            "INIT musicVolume=" + musicVolume + ", soundVolume=" + soundVolume);
     }
 
     public void playMusic(Music music) {
@@ -58,6 +62,8 @@ public class AudioManager {
         }
     }
 
+
+
     public void setMusicEnabled(boolean enabled) {
         musicEnabled = enabled;
 
@@ -78,8 +84,11 @@ public class AudioManager {
         savePreferences();
     }
 
+
+
+    // Metodo unificado para el slider único
     public void setMasterVolume(float volume) {
-        float v = clamp(volume); // Sirve para limitar el volumen dentro del rango entre 0 y 1
+        float v = clamp(volume);
 
         musicVolume = v;
         soundVolume = v;

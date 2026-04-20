@@ -43,7 +43,7 @@ public class ConfigurationScreen implements Screen {
         input();
 
         GameSettings settings = ((NataRunner) game).settings;
-        AudioManager audioManager = ((NataRunner) game).audioManager;
+        AudioManager audioManager = ((NataRunner) game).audio;
 
         ScreenUtils.clear(0.07f, 0.07f, 0.10f, 1f);
 
@@ -68,7 +68,7 @@ public class ConfigurationScreen implements Screen {
 
     private void input() {
         GameSettings settings = ((NataRunner) game).settings;
-        AudioManager audioManager = ((NataRunner) game).audioManager;
+        AudioManager audioManager = ((NataRunner) game).audio;
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.M)) {
             settings.setMouseEnabled(!settings.isMouseEnabled());

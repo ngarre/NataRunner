@@ -1,5 +1,6 @@
 package com.natalia.natarunner.manager;
 
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 
@@ -15,6 +16,7 @@ public class GameSettings {
     private boolean mouseEnabled;
     private boolean easyMode;
     private String playerName;
+
 
     public GameSettings() {
         prefs = Gdx.app.getPreferences(PREFS_NAME);
@@ -37,11 +39,6 @@ public class GameSettings {
         return easyMode;
     }
 
-    public void setEasyMode(boolean enabled) {
-        easyMode = enabled;
-        save();
-    }
-
     public String getPlayerName() {
         return playerName;
     }
@@ -52,6 +49,12 @@ public class GameSettings {
         } else {
             this.playerName = playerName.trim();
         }
+        save();
+    }
+
+
+    public void setEasyMode(boolean enabled) {
+        easyMode = enabled;
         save();
     }
 

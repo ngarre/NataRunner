@@ -6,7 +6,14 @@ import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Json;
 
+
 public class ScoreManager {
+
+    /*
+       Esta clase lee y guarda el historial de resultados.
+       Esto guarda las últimas 10 partidas completadas.
+       Guardo y recupero las últimas 10 puntuaciones en Preferences usando JSON.
+    */
 
     private static final String PREFS_NAME = "nata_runner_scores";
     private static final String KEY_SCORES = "scores_json";
@@ -33,6 +40,7 @@ public class ScoreManager {
             return new Array<>();
         }
 
+        // Ordenar por instante real de creación: el más reciente arriba
         scores.sort((a, b) -> Long.compare(b.getCreatedAt(), a.getCreatedAt()));
 
         return scores;
@@ -57,6 +65,7 @@ public class ScoreManager {
         saveScores(scores);
     }
 
+    // Esto lo llamaré, si quiero, desde MenuScreen con F9
     public void clearScores() {
         prefs.remove(KEY_SCORES);
         prefs.flush();
