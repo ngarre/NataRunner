@@ -11,13 +11,13 @@
 ![Players](https://img.shields.io/badge/Players-Single%20Player-00BFFF?style=flat&logo=user&logoColor=white)
 ![Physics](https://img.shields.io/badge/Physics-Custom%202D-orange?style=flat&logo=physics&logoColor=white)
 
-# Descripción
+# NataRunner
 Juego de acción y plataformas 2D desarrollado en Java con el framework LibGDX. El juego rinde homenaje al universo cyberpunk de **Blade Runner**, sumergiendo al jugador en la atmósfera lluviosa y decadente de Los Ángeles 2019.
 
-Acompaña al protagonista a través de una narrativa dividida en dos actos mecánicamente distintos:
+Acompaña al protagonista a través de una narrativa dividida en dos actos mecánicamente distintos.
 
 ## Nivel 1: "Tears District" 💧
-Un nivel atmosférico basado en el clímax emocional de la película en la Roy dice la mítica frase de "todos esos momentos se perderán como lágrimas en la lluvia"
+Un nivel atmosférico basado en el clímax emocional de la película, cuando ROY dice la mítica frase de "todos esos momentos se perderán como lágrimas en la lluvia"
 Para progresar al Nivel 2, deberás alcanzar la puntuación objetivo gestionando los distintos tipos de elementos:
 
 - Lágrimas Blancas: Recógelas para sumar puntos sin riesgos (+ 10 pts).
@@ -120,7 +120,7 @@ En la pantalla final, tras superar los dos niveles podrás acceder a una tabla r
 
 ![Ranking puntuaciones](images/scores.jpg)
 
-Únicamente se registran las 10 últimas partidas.  Es posible limpiar los registros de esta tabla pulsando ´F9´ desde la pantalla inicial, tal y como se explica en el apartado de Atajos.
+Únicamente se registran las 10 últimas partidas.  Es posible limpiar los registros de esta tabla pulsando `F9` desde la pantalla inicial, tal y como se explica en el apartado de Atajos.
 
 La puntuación es el tiempo máximo entre los dos niveles 2 minutos (120 segundos) menos el tiempo invertido para superar el nivel.
 Nota: cada vez que pierdes una vida este tiempo se resetea.
@@ -135,7 +135,7 @@ A continuación se listan los temas instrumentales utilizados por orden de apari
 - Mesa - Hans Zimmer & Benjamin Wallfisch
 
 # Imágenes 📸
-Imágenes obtenidas de las películas de la franquicia de **Blade Runner**:
+Material visual basado en imágenes de la franquicia **Blade Runner**:
 - Blade Runner (1982)
 - Blade Runner 2049 (2017)
 
