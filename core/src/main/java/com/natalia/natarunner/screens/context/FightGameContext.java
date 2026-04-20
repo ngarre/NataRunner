@@ -1,7 +1,10 @@
 package com.natalia.natarunner.screens.context;
 
 import com.natalia.natarunner.config.GameConfig;
+import com.natalia.natarunner.model.entities.npc.NpcBoss;
+import com.natalia.natarunner.model.entities.npc.NpcChicas;
 import com.natalia.natarunner.model.entities.player.PlayerBladecar;
+import com.natalia.natarunner.model.entities.projectile.BulletBoss;
 import com.natalia.natarunner.model.entities.projectile.BulletChicas;
 import com.natalia.natarunner.ui.CountdownTimer;
 import com.natalia.natarunner.ui.FlashMessage;
@@ -40,6 +43,7 @@ public class FightGameContext {
     public boolean dragging = false;
 
     public boolean bossPending = false;
+    public boolean quitarChicasSiSaleBoss = GameConfig.quitarChicasSiSaleElBoss;
 
     public int score = 100;
     public int scoreBasta;
@@ -47,6 +51,7 @@ public class FightGameContext {
     public int hearts = GameConfig.cuantosCorazones;
 
     public int npcKilled = 0;
+    public int npcMaxKilled = GameConfig.chicasAMatar;
 
     public float hudHeight = 1f;
     public float barHeight = 60f;
@@ -60,8 +65,11 @@ public class FightGameContext {
     public Vector2 mouseWorld = new Vector2();
 
     public PlayerBladecar player;
+    public NpcBoss boss;
 
+    public Array<NpcChicas> sideNPCs = new Array<>();
     public Array<BulletChicas> bullets = new Array<>();
+    public Array<BulletBoss> bossBullets = new Array<>();
     public Array<FloatingText> floatingTexts = new Array<>();
 
     public FlashMessage flashMessage;
