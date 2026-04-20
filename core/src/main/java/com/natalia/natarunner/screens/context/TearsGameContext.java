@@ -5,18 +5,19 @@ import com.natalia.natarunner.model.entities.drops.RedDrop;
 import com.natalia.natarunner.model.entities.drops.WhiteDrop;
 import com.natalia.natarunner.model.entities.drops.YellowDrop;
 import com.natalia.natarunner.model.entities.player.PlayerTears;
-import com.natalia.natarunner.ui.CountdownTimer;
-import com.natalia.natarunner.ui.FlashMessage;
-import com.natalia.natarunner.ui.FloatingText;
-import com.natalia.natarunner.ui.ScoreBar;
+import com.natalia.natarunner.ui.*;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
-import com.natalia.natarunner.model.entities.projectile.RedDropProjectile;
-import com.natalia.natarunner.ui.PauseMenu;
-
 
 public class TearsGameContext {
+
+    /*
+     * Clase de contexto que centraliza el estado de la partida (player, score, entidades, timers, etc.).
+     * Se utiliza para compartir datos entre LogicManager y RenderManager sin duplicarlos.
+     * Evita acoplamiento entre clases y mantiene una única fuente de verdad del estado del juego.
+     * Forma parte de la separación de responsabilidades aplicada a la arquitectura de la Screen.
+     */
 
     public String level1Title = "LEVEL 1: TEARS DISTRICT";
 
@@ -26,6 +27,7 @@ public class TearsGameContext {
         PAUSED,
         GAMEOVER
     }
+
 
     public GameState state = GameState.INTRO;
 
@@ -44,7 +46,9 @@ public class TearsGameContext {
 
     public int score = 100;
     public int scoreBasta;
+
     public int hearts = GameConfig.cuantosCorazones;
+
 
     public PlayerTears playerTears;
 
@@ -52,15 +56,17 @@ public class TearsGameContext {
     public Array<YellowDrop> gotasAmarillas = new Array<>();
     public Array<RedDrop> gotasRojas = new Array<>();
     public Array<FloatingText> floatingTexts = new Array<>();
-    public Array<RedDropProjectile> redProjectiles = new Array<>();
 
     public FlashMessage flashMessage;
+    public PauseMenu pauseMenu;
     public ScoreBar scoreBar;
     public CountdownTimer countdownTimer;
-    public PauseMenu pauseMenu;
 
     public Rectangle level1Rectangulo = new Rectangle();
 
     public BitmapFont font;
     public BitmapFont smallFont;
+
+    public com.badlogic.gdx.utils.Array<com.natalia.natarunner.model.entities.projectile.RedDropProjectile> redProjectiles =
+        new com.badlogic.gdx.utils.Array<>();
 }
