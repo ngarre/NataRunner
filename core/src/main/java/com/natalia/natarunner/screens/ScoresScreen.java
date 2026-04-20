@@ -4,8 +4,10 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -29,8 +31,10 @@ public class ScoresScreen implements Screen {
 
     private Texture fondoTexture;
     private Texture toMenuButton;
-
     private final Rectangle rectanguloBack = new Rectangle();
+
+    private Music music;
+    private BitmapFont tableFont;
 
     public ScoresScreen(Game game, AudioManager audio, ResourceManager resources, GameSettings settings) {
         this.game = game;
@@ -58,6 +62,12 @@ public class ScoresScreen implements Screen {
         rectanguloBack.set(x, y, w, h);
 
         viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
+
+        music = resources.scoreMusic;
+        music.setLooping(true);
+        audio.playMusic(music);
+
+        tableFont = resources.fontMenu;
     }
 
     @Override
