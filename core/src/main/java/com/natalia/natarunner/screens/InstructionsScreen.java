@@ -191,8 +191,5 @@ public class InstructionsScreen implements Screen {
         spriteBatch.dispose();
         fondoMenu.dispose();
         backButton.dispose();
-        spriteBatch.dispose();
-        fondoMenu.dispose();
-        backButton.dispose();
     }
 }
