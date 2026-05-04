@@ -18,7 +18,7 @@ public class GameSession {
       control para no guardar dos veces
 
                                               La puntuación final es la suma de los segundos
-                                              restantes de cada nivel. cuanto más tiempo tardes
+                                              restantes de cada nivel. Cuanto más tiempo tardes
                                               en acabar, pues menos puntos, claro
 
     */

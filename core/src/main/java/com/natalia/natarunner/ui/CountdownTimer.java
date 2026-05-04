@@ -54,6 +54,10 @@ public class CountdownTimer {
         return remainingTime;
     }
 
+    // Obtener tiempo restante redondeado para mostrarlo como entero
+    // Max.math para evitar mostrar números negativos
+    // Math.ceil para redondear hacia arriba (si quedan 0.1s, mostrar 1s)
+    // Entonces si el tiempo es negativo o 0, mostrar 0. Si quedan 0.1s, mostrar 1s.
     public int getRemainingSeconds() {
         return Math.max(0, (int) Math.ceil(remainingTime));
     }
