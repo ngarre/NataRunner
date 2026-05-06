@@ -74,16 +74,25 @@ public class RedDrop extends Drop {
     }
 
     public void chase(float targetCenterX, float delta) {
+        // La gota roja solo persigue al jugador mientras está cayendo.
+        // Si está en otro estado, por ejemplo disparando, no aplica persecución.
         if (state != State.FALLING) return;
 
+        // Calcula el centro horizontal de la gota roja.
         float myCenterX = sprite.getX() + sprite.getWidth() / 2f;
 
+        // Lo compara con el centro horizontal del jugador recibido por parámetro:
+        // Si la gota está a la izquierda del jugador, se mueve hacia la derecha.
         if (myCenterX < targetCenterX) {
             sprite.translateX(speedX * delta);
+
+        // Si la gota está a la derecha del jugador, se mueve hacia la izquierda.
         } else {
             sprite.translateX(-speedX * delta);
         }
 
+        // Actualiza la hitbox después de mover el sprite,
+        // para que las colisiones coincidan con la nueva posición.
         updateBounds();
     }
 
